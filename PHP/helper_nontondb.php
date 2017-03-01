@@ -39,6 +39,16 @@ function IsNullOrEmptyString($question)
     return (!isset($question) || trim($question)==='');
 }
 
+function GetCountryNameFromIp($the_ip_address)
+{
+	$the_gi = geoip_open("geoip/GeoLiteCity.dat", GEOIP_STANDARD);
+	$the_rsGeoData = geoip_record_by_addr($the_gi, $the_ip_address);
+	$the_country = $the_rsGeoData->country_name;
+	geoip_close($the_gi);
+
+	return $the_country;
+}
+
 /** 
  * recursively create a long directory path
  */

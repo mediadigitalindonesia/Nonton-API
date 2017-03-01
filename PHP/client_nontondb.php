@@ -43,8 +43,9 @@ function GetClientAPI($jsonaction, $data)
 			$captureddata = json_decode(decrypt($data->data));
 			
 			$temp_total_counts = GetVideoList($conn, true, null, 7, 0, false);
-			//GetBannersList($conn, true, null, -1, -1);
-						
+
+			$country = GetCountryNameFromIp("202.158.37.178");
+
 			if( $temp_total_counts > 0 )
 			{
 				$return["sta"] = "OK";
@@ -768,22 +769,24 @@ function GetClientAPI($jsonaction, $data)
             $return["evn"] = (string)$jsonaction;
 			$captureddata = json_decode(decrypt($data->data));
 			
-			if(array_key_exists_r("fbid|pts", $captureddata))
+			if(array_key_exists_r("fbid|pts|ssid", $captureddata))
 			{
 				$the_fb_id = (string)$captureddata->fbid;
 				$the_points = (string)$captureddata->pts;
+				$the_session_id = (string)$captureddata->ssid;
 
-				if( AddPoints($conn, $the_fb_id, $the_points) )
+				if( AddPoints($conn, $the_fb_id, $the_points, "-1", $the_session_id) )
 				{
 					GetUserInfo($conn, $the_fb_id);
 				}
 			}
-			else if(array_key_exists_r("uid|pts", $captureddata))
+			else if(array_key_exists_r("uid|pts|ssid", $captureddata))
 			{
 				$the_user_id = (string)$captureddata->uid;
 				$the_points = (string)$captureddata->pts;
+				$the_session_id = (string)$captureddata->ssid;
 
-				if( AddPoints($conn, "-1", $the_points, $the_user_id) )
+				if( AddPoints($conn, "-1", $the_points, $the_user_id, $the_session_id) )
 				{
 					GetUserInfo($conn, "-1",$the_user_id);
 				}
@@ -811,22 +814,24 @@ function GetClientAPI($jsonaction, $data)
             $return["evn"] = (string)$jsonaction;
 			$captureddata = json_decode(decrypt($data->data));
 			
-			if(array_key_exists_r("fbid|type", $captureddata))
+			if(array_key_exists_r("fbid|type|ssid", $captureddata))
 			{
 				$the_fb_id = (string)$captureddata->fbid;
 				$the_subscription_type = (string)$captureddata->type;
+				$the_session_id = (string)$captureddata->ssid;
 
-				if( AddSubscription($conn, $the_fb_id, $the_subscription_type) )
+				if( AddSubscription($conn, $the_fb_id, $the_subscription_type, "-1", $the_session_id) )
 				{
 					GetUserInfo($conn, $the_fb_id);
 				}
 			}
-			else if(array_key_exists_r("uid|type", $captureddata))
+			else if(array_key_exists_r("uid|type|ssid", $captureddata))
 			{
 				$the_user_id = (string)$captureddata->uid;
 				$the_subscription_type = (string)$captureddata->type;
+				$the_session_id = (string)$captureddata->ssid;
 
-				if( AddSubscription($conn, "-1", $the_subscription_type, $the_user_id) )
+				if( AddSubscription($conn, "-1", $the_subscription_type, $the_user_id, $the_session_id) )
 				{
 					GetUserInfo($conn, "-1", $the_user_id);
 				}
@@ -854,26 +859,28 @@ function GetClientAPI($jsonaction, $data)
             $return["evn"] = (string)$jsonaction;
 			$captureddata = json_decode(decrypt($data->data));
 			
-			if(array_key_exists_r("fbid|vidid|vidname", $captureddata))
+			if(array_key_exists_r("fbid|vidid|vidname|ssid", $captureddata))
 			{
 				$the_fb_id = (string)$captureddata->fbid;
 				$the_video_id = (string)$captureddata->vidid;
 				$the_video_name = (string)$captureddata->vidname;
+				$the_session_id = (string)$captureddata->ssid;
 
-				if( AddPayPerView($conn, $the_fb_id, $the_video_id, $the_video_name) )
+				if( AddPayPerView($conn, $the_fb_id, $the_video_id, $the_video_name, "-1", $the_session_id) )
 				{
 					GetUserInfo($conn, $the_fb_id);
 
 					GetPayPerView($conn, $the_fb_id);
 				}
 			}
-			else if(array_key_exists_r("uid|vidid|vidname", $captureddata))
+			else if(array_key_exists_r("uid|vidid|vidname|ssid", $captureddata))
 			{
 				$the_user_id = (string)$captureddata->uid;
 				$the_video_id = (string)$captureddata->vidid;
 				$the_video_name = (string)$captureddata->vidname;
+				$the_session_id = (string)$captureddata->ssid;
 
-				if( AddPayPerView($conn, "-1", $the_video_id, $the_video_name, $the_user_id) )
+				if( AddPayPerView($conn, "-1", $the_video_id, $the_video_name, $the_user_id, $the_session_id) )
 				{
 					GetUserInfo($conn, "-1", $the_user_id);
 

@@ -196,12 +196,12 @@ function GetVideoList($conn, $called_by_client, $the_keyword, $the_limit_per_pag
 				$the_franchise_url_poster_landscape = (string)$valueFranchise->f_url_poster_landscape;
 				if( IsNullOrEmptyString($the_franchise_url_poster) )
 				{
-					$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_poster_landscape`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_franchise_id`=? and `v_is_active`=? and `v_url_poster`!=? ORDER BY `v_date_uploaded` DESC LIMIT 1;",array((string)$valueFranchise->f_id, 1, ""),'json');
+					$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_poster_landscape`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_is_featured`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_franchise_id`=? and `v_is_active`=? and `v_url_poster`!=? ORDER BY `v_date_uploaded` DESC LIMIT 1;",array((string)$valueFranchise->f_id, 1, ""),'json');
 					$objUser = json_decode($json);
 				}
 				else
 				{
-					$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_poster_landscape`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_franchise_id`=? and `v_is_active`=? ORDER BY `v_date_uploaded` DESC LIMIT 1;",array((string)$valueFranchise->f_id, 1),'json');
+					$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_poster_landscape`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_is_featured`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_franchise_id`=? and `v_is_active`=? ORDER BY `v_date_uploaded` DESC LIMIT 1;",array((string)$valueFranchise->f_id, 1),'json');
 					$objUser = json_decode($json);
 				}
 				
@@ -231,7 +231,7 @@ function GetVideoList($conn, $called_by_client, $the_keyword, $the_limit_per_pag
 		
 		$temp_total_counts = $objUser->data->query_result[0]->count;
 						
-		$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_id`>=? ORDER BY `v_title` ASC LIMIT ? OFFSET ?;",array(1, $the_limit_per_page,$the_page_number),'json');
+		$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_is_featured`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_id`>=? ORDER BY `v_title` ASC LIMIT ? OFFSET ?;",array(1, $the_limit_per_page,$the_page_number),'json');
 		$objUser = json_decode($json);
 						
 		if( $the_keyword != "n/a" )
@@ -241,7 +241,7 @@ function GetVideoList($conn, $called_by_client, $the_keyword, $the_limit_per_pag
 		
 			$temp_total_counts = $objUser->data->query_result[0]->count;
 						
-			$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_title` LIKE ? ORDER BY `v_title` ASC LIMIT ? OFFSET ?;",array("%$the_keyword%", $the_limit_per_page,$the_page_number),'json');
+			$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_is_featured`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_title` LIKE ? ORDER BY `v_title` ASC LIMIT ? OFFSET ?;",array("%$the_keyword%", $the_limit_per_page,$the_page_number),'json');
 			$objUser = json_decode($json);
 		}
 		
@@ -327,7 +327,7 @@ function GetVideoListBasedOnGenre($conn, $captureddata, $the_limit_per_page, $th
 				}
 				else*/
 				{
-					$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_poster_landscape`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_franchise_id`=? and `v_is_active`=? and `v_id`!=? ORDER BY `v_date_uploaded` DESC LIMIT 1;",array((string)$valueFranchise->f_id, 1, $the_video_id),'json');
+					$json = $conn->doQuery("select `v_id`,`v_franchise_id`,`v_franchise_name`,`v_title`,`v_season`,`v_episode`,`v_year_production`,`v_synopsis`,`v_duration`,`v_director_id`,`v_producer_id`,`v_casts_id`,`v_director`,`v_producer`,`v_casts`,`v_url_poster`,`v_url_poster_landscape`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_views`,`v_likes`,`v_dislikes`,`v_price`,`v_screenshot_url_1`,`v_screenshot_url_2`,`v_screenshot_url_3`,`v_screenshot_url_4`,`v_screenshot_url_5`,`v_is_active`,`v_is_featured`,`v_uploader_admin_id`,`v_updater_admin_id`,`v_date_uploaded`,`v_last_updated` from `n_video` where `v_franchise_id`=? and `v_is_active`=? and `v_id`!=? ORDER BY `v_date_uploaded` DESC LIMIT 1;",array((string)$valueFranchise->f_id, 1, $the_video_id),'json');
 					$objUser = json_decode($json);
 				}
 				
@@ -404,6 +404,7 @@ function GetVideoDetails($objUser, $called_by_client, $show_full_details, $the_f
 		{
 			$temp_search_text = "n/a";
 		}
+		//array_push($the_search_result, $temp_search_text)
 		$the_search_result[] = $temp_search_text;
 							
 		$temp_search_text = (string)$value->v_url_youtube_id;
@@ -460,6 +461,7 @@ function GetVideoDetails($objUser, $called_by_client, $show_full_details, $the_f
 			
 			if( $called_by_client == false )
 			{
+				$the_search_result[] = (string)$value->v_is_featured;
 				$the_search_result[] = (string)$value->v_uploader_admin_id;
 				$the_search_result[] = (string)$value->v_updater_admin_id;
 				$the_search_result[] = (string)$value->v_date_uploaded;
@@ -710,7 +712,7 @@ function AddPointsInternal($initial_pts, $added_pts)
 	return $final_pts;
 }
 
-function AddPoints($conn, $the_fb_id, $the_points, $the_user_id = "-1")
+function AddPoints($conn, $the_fb_id, $the_points, $the_user_id = "-1", $the_session_id)
 {
 	$json = $conn->doQuery("select `u_id`,`u_points` from `n_user` where `u_fbid`=? LIMIT 1;",array($the_fb_id),'json');
 					
@@ -770,7 +772,7 @@ function GetSecondsInOneDay()
 	return 86400; // 60 x 60 x 24
 }
 
-function AddSubscription($conn, $the_fb_id, $the_subscription_type, $the_user_id = "-1")
+function AddSubscription($conn, $the_fb_id, $the_subscription_type, $the_user_id = "-1", $the_session_id)
 {
 	global $return;
 	
@@ -839,7 +841,7 @@ function AddSubscription($conn, $the_fb_id, $the_subscription_type, $the_user_id
 			// if update succeeded
 			if(strcmp($objUser->data->result,"ok")==0)
 			{
-				$json = $conn->doQuery("insert into `n_pay_subscription` (`ps_user_id`,`ps_user_fullname`,`ps_date_paid`,`ps_type`) values (?,?,?,?);",array($the_user_id,$the_user_fullname,$conn->getDateTimeNow(),$the_subscription_type),'json');
+				$json = $conn->doQuery("insert into `n_pay_subscription` (`ps_user_id`,`ps_user_fullname`,`ps_date_paid`,`ps_type`,`ps_session_id`) values (?,?,?,?,?);",array($the_user_id,$the_user_fullname,$conn->getDateTimeNow(),$the_subscription_type,$the_session_id),'json');
 						
 				$objUser = json_decode($json);
 
@@ -890,7 +892,7 @@ function AddSubscription($conn, $the_fb_id, $the_subscription_type, $the_user_id
 	return false;
 }
 
-function AddPayPerView($conn, $the_fb_id, $the_video_id, $the_video_name, $the_user_id = "-1")
+function AddPayPerView($conn, $the_fb_id, $the_video_id, $the_video_name, $the_user_id = "-1", $the_session_id)
 {
 	global $return;
 	
@@ -923,7 +925,7 @@ function AddPayPerView($conn, $the_fb_id, $the_video_id, $the_video_name, $the_u
 				
 			//$the_date_end->modify('+2 days');
 
-			$json = $conn->doQuery("insert into `n_pay_per_view` (`ppv_user_id`,`ppv_user_fullname`,`ppv_video_id`,`ppv_video_name`,`ppv_date_started`,`ppv_date_ended`) values (?,?,?,?,?,?);",array($the_user_id,$the_user_fullname,$the_video_id, $the_video_name,$conn->getDateTimeNow(),$the_date_end),'json');
+			$json = $conn->doQuery("insert into `n_pay_per_view` (`ppv_user_id`,`ppv_user_fullname`,`ppv_video_id`,`ppv_video_name`,`ppv_date_started`,`ppv_date_ended`,`ppv_session_id`) values (?,?,?,?,?,?,?);",array($the_user_id,$the_user_fullname,$the_video_id, $the_video_name,$conn->getDateTimeNow(),$the_date_end,$the_session_id),'json');
 						
 			$objUser = json_decode($json);
 
