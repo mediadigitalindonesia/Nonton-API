@@ -48,6 +48,26 @@ function GetClientExtraAPI($jsonaction, $data)
 			echo stripslashes(json_encode($return));
 			break;
 		}
+		case "cli_get_initial_data":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->ip) && isset($captureddata->aps) && isset($captureddata->apv))
+			{
+				//echo $captureddata->ip;
+				$country_name=GetCountryNameFromIp($captureddata->ip);
+				get_initial_content($conn, $captureddata->aps, $country_name);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			echo json_encode($return);
+			break;
+		}
 
 		default:
 		{
