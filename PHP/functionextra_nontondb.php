@@ -21,7 +21,7 @@ function get_initial_content($conn, $app_signature, $country_name)
 										null,'json');
 			$objVideo = json_decode($json);
 			$return["sta"] = "SUCCESS";
-			$return["ret"]["msg"] = $objVideo->data->query_result;
+			$return["ret"]["dat"] = encrypt(json_encode($objVideo->data->query_result));
 			//echo json_encode($objVideo);
 		}
 	}
