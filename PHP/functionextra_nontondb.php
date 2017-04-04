@@ -365,6 +365,7 @@ function create_user($conn, $facebookid=null, $deviceid=null,$referalid=null, $e
 								values ('".facebookid."','".$deviceid."','".$referalid."','".$username."','".$password."','".fullname."','".$gender."',null,10, '".$photourl."', '".$email."');", 
 											null,'json');
 		//echo json_encode($json);
+		// TODO : dont hardcode points, put it in variable
 		$insert=json_decode($json);
 		$data=array("u_id"=>$insert->data->query_id,
 					"points"=>10
