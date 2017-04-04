@@ -30,6 +30,7 @@ function get_initial_content($conn, $app_signature, $country_name, $sessionid)
 										null,'json');
 			$json3 = $conn->doQuery("SELECT `v_id`,`v_franchise_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=3 ORDER BY v_last_updated DESC LIMIT 6;", 
 										null,'json');
+										
 			$objVideo1 = json_decode($json1);
 			$objVideo2 = json_decode($json2);
 			$objVideo3 = json_decode($json3);
@@ -121,6 +122,7 @@ function get_video_list($conn, $limit, $franchiseid, $category,$country_name)
 {
 	global $return;
 	$the_search_result = array();
+
 			// TODO : why are you checking franchise id, why did you put this line below "and f_id > ".$franchiseid."
 			// shouldn't we only check the type and return every franchise with this type? Maybe I'm understanding this code wrong, let me know
 
@@ -174,6 +176,7 @@ function search_franchise($conn, $kwd, $country_name, $start)
 
 	// TODO : I might have understood it wrong, but this code right here checks the genre
 	// while for search, you need to check if the TITLE and ACTOR contains specific keywords
+
 	$json = $conn->doQuery("SELECT count(*) total from n_franchise f 
 							LEFT JOIN n_genre as g1 on f_genre_id_1=g1.g_id 
 							LEFT JOIN n_genre as g2 on f_genre_id_2=g2.g_id 
@@ -212,6 +215,7 @@ function get_autocomplete($conn, $kwd, $country_name)
 	global $return;
 
 	// TODO : Auto complete needs to search from Franchise name, Video name and Actor name
+
 	$json = $conn->doQuery("SELECT `f_name`,`v_franchise_id` FROM `n_video` v, `n_franchise` f WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND upper(f_name) like '%".strtoupper($kwd)."%' ORDER BY v_last_updated DESC LIMIT 10;", 
 										null,'json');
 //echo json_encode($json);	
@@ -302,7 +306,9 @@ function get_video_detail($conn, $activityId=null, $videoId=null, $duration=null
 	//array_push($objVideoDetail->data->query_result, $objEpisode->data->query_result);
 	$return["sta"] = "SUCCESS";
 
+
 	// TODO : what is this activity id 23? why is it hard coded?
+
 	$return["ret"]["dat"] = encrypt(json_encode(array("activityId"=>"23","video"=>$data)));;
 	
 }
@@ -322,6 +328,7 @@ function update_activity()
 
 function get_comments($conn, $videoId, $start)
 {
+	// TODO : 10 needs to be put inside a variable
 	global $return;
 	$json = $conn->doQuery("SELECT `cm_id`, `u_id`, `u_avatar_url`,`u_username`, `cm_replied_to_id`, `cm_video_id`, `cm_video_name`, `cm_session_id`, `cm_activity_id`, `cm_user_id`, `cm_title`, `cm_body`, `cm_likes`, `cm_dislikes`, `cm_is_active`, `cm_date_created` FROM `n_comment` c, `n_user` u WHERE c.`cm_video_id` = ".$videoId." and u.u_id=c.`cm_user_id`
 							order by cm_date_created desc LIMIT ".$start.",10; ", 
@@ -341,7 +348,9 @@ function get_comments($conn, $videoId, $start)
 
 function insert_comment($conn, $sid, $commentId, $userId, $videoId, $activityId, $title, $body)
 {
+
 	// TODO : replied_to_id should be null or 0 if it's not replyign to any comment, right now in the database everything is replying to id 1
+	
 	$json=$conn->doQuery("insert into n_comment (cm_session_id, Cm_replied_to_id , Cm_user_id , Cm_video_id , Cm_activity_id, Cm_title, Cm_body ) values (".$sid.",".$commentId.",".$userId.",".$videoId.",".$activityId.",'".$title."', '".$body."');",
 						null, 'json');
 	//echo json_encode($json);
@@ -365,10 +374,13 @@ function create_user($conn, $facebookid=null, $deviceid=null,$referalid=null, $e
 								values ('".facebookid."','".$deviceid."','".$referalid."','".$username."','".$password."','".fullname."','".$gender."',null,10, '".$photourl."', '".$email."');", 
 											null,'json');
 		//echo json_encode($json);
-		// TODO : dont hardcode points, put it in variable
+
+		// TODO : use referral code points as I explained previously
+		$referral_code_points = 10;
+
 		$insert=json_decode($json);
 		$data=array("u_id"=>$insert->data->query_id,
-					"points"=>10
+					"points"=>$referral_code_points
 				);
 	
 		$return["sta"] = "SUCCESS";

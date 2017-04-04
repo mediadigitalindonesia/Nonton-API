@@ -132,9 +132,8 @@ function GetClientExtraAPI($jsonaction, $data)
 				$rsSession=get_session($conn, $captureddata->sid);
 				$country_name=$rsSession[0]->s_origin_country_name;
 				//echo $country_name;
-
-				// TODO : Put the 10 in the variable
-				$page=10*$captureddata->pg;
+				$search_limit = 10;
+				$page=$search_limit*$captureddata->pg;
 				search_franchise($conn, $captureddata->kwd,$country_name, $page);
 			}
 			else
