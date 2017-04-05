@@ -98,12 +98,14 @@ function GetClientExtraAPI($jsonaction, $data)
 			$return["evn"] = (string)$jsonaction;
 			//echo $data;
 			$captureddata = json_decode(decrypt($data));
-			if(isset($captureddata->sid) && isset($captureddata->lim) && isset($captureddata->fid) && isset($captureddata->cat))
+			if(isset($captureddata->sid) && isset($captureddata->pg) && isset($captureddata->cat))
 			{
 				//echo $captureddata->ip;
 				$rsSession=get_session($conn, $captureddata->sid);
 				$country_name=$rsSession[0]->s_origin_country_name;
-				get_video_list($conn, $captureddata->lim, $captureddata->fid, $captureddata->cat,$country_name);
+				$lim=5;
+				$page=$lim*$captureddata->pg;
+				get_video_list($conn, $page, $captureddata->fid, $captureddata->cat,$country_name);
 			}
 			else
 			{
@@ -141,7 +143,7 @@ function GetClientExtraAPI($jsonaction, $data)
 			}
 			$param=array(
 					'sessionid'=>$captureddata->sid,
-					'an_name'=>'cli_search_franchise',
+					'an_name'=>'cli_search_database',
 					'an_note'=>'',
 					'an_is_valid'=>0);
 			insert_action($conn, $param);
@@ -188,7 +190,12 @@ function GetClientExtraAPI($jsonaction, $data)
 			if(isset($captureddata->sid) && isset($captureddata->activityId) && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->timeEnd))
 			{
 				$favorite=check_favorite($conn, $captureddata->sid, $captureddata->videoId);
-				get_video_detail($conn, $captureddata->activityId, $captureddata->videoId, $captureddata->duration,$captureddata->nShares, $captureddata->resolution,$captureddata->timeEnd, $favorite);
+				$activity=insert_activity($conn, $captureddata->sid,$captureddata->videoId );
+				if($captureddata->activityId!="")
+					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->nShares, $captureddata->resolution, $captureddata->timeEnd);
+				echo json_encode($activity);
+				$data=get_video_detail($conn,  $captureddata->videoId, $favorite, $activity->data->query_id);
+				
 			}
 			else
 			{
@@ -379,7 +386,7 @@ function GetClientExtraAPI($jsonaction, $data)
 			{
 				//$page=10*$captureddata->pg;
 				purchase_video($conn, $captureddata->sid, $captureddata->userid, $captureddata->videoid, $captureddata->usetoken);
-				$return["sta"] = "SUCCESS";
+				//$return["sta"] = "SUCCESS";
 			}
 			else
 			{
