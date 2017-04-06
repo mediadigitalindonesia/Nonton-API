@@ -17,99 +17,19 @@ function get_initial_content($conn, $app_signature, $country_name, $sessionid)
 		}
 		else
 		{
-<<<<<<< HEAD
 			$json = $conn->doQuery("SELECT t_id from n_type;",
 										null,'json');
 			$objType = json_decode($json);
 			$data=array();
 			foreach($objType->data->query_result as $row)
-=======
-			// TODO : remove hard code
-			// TODO : Create a function that handle this piece of code so no code duplication
-			// TODO : Limit to 6 if the total video is 6 or greater
-			// TODO : Limit to 3 if the total video is less than 6
-			// TODO : Don't show any banner if the total video is 0
-			// TODO : The error check for $array3 should be done for $array1 and $array2 as well
-
-			$json1 = $conn->doQuery("SELECT `v_id`,`v_franchise_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=1 ORDER BY v_last_updated DESC LIMIT 6;", 
-										null,'json');
-			$json2 = $conn->doQuery("SELECT `v_id`,`v_franchise_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=2 ORDER BY v_last_updated DESC LIMIT 6;", 
-										null,'json');
-			$json3 = $conn->doQuery("SELECT `v_id`,`v_franchise_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=3 ORDER BY v_last_updated DESC LIMIT 6;", 
-										null,'json');
-										
-			$objVideo1 = json_decode($json1);
-			$objVideo2 = json_decode($json2);
-			$objVideo3 = json_decode($json3);
-			$count=0;
-			$lpgroup=0;
-			$data1=array();
-			foreach($objVideo1->data->query_result as $row)
-			{
-				$data1[]=array(
-								"v_id"=> $row->v_id,
-								"v_franchise_id"=> $row->v_franchise_id,
-								"v_title"=> $row->v_title,
-								"v_url_youtube_id"=> $row->v_url_youtube_id,
-								"v_url_cdn"=> $row->v_url_cdn,
-								"v_prioritize_youtube"=> $row->v_prioritize_youtube,
-								"v_url_poster"=> $row->v_url_poster,
-								"v_url_poster_landscape"=> $row->v_url_poster_landscape,
-								"t_name"=> $row->t_name
-								);
-				$count++;
-			}
-			
-			$data2=array();
-			foreach($objVideo2->data->query_result as $row)
-			{
-				$data2[]=array(
-								"v_id"=> $row->v_id,
-								"v_franchise_id"=> $row->v_franchise_id,
-								"v_title"=> $row->v_title,
-								"v_url_youtube_id"=> $row->v_url_youtube_id,
-								"v_url_cdn"=> $row->v_url_cdn,
-								"v_prioritize_youtube"=> $row->v_prioritize_youtube,
-								"v_url_poster"=> $row->v_url_poster,
-								"v_url_poster_landscape"=> $row->v_url_poster_landscape,
-								"t_name"=> $row->t_name					
-								);
-				$count++;
-			}
-			
-			$data3=array();
-			foreach($objVideo3->data->query_result as $row)
->>>>>>> origin/nonton-rian-version
 			{
 				$content=get_content($conn, $row->t_id);
 				if($content!=null)
 					$data[]=$content;
 			}
-<<<<<<< HEAD
 			$response=array("sessionid"=>$sessionid,
 						"content"=>$data,
 					);
-=======
-
-			$array1=array('t_name'=>$objVideo1->data->query_result[0]->t_name,
-						  't_banner'=>$objVideo1->data->query_result[0]->t_url_poster_landscape,
-						  't_id'=>$objVideo1->data->query_result[0]->t_id,
-						  'session_id'=>$sessionid,
-						  'data'=>$data1);
-
-			$array2=array('t_name'=>$objVideo2->data->query_result[0]->t_name,
-						 't_banner'=>$objVideo2->data->query_result[0]->t_url_poster_landscape,
-						 't_id'=>$objVideo2->data->query_result[0]->t_id,
-						 'session_id'=>$sessionid,
-						  'data'=>$data2);
-
-			$array3=array('t_name'=> is_null($objVideo3->data->query_result[0]->t_name) ? '' : $objVideo3->data->query_result[0]->t_name ,
-						  't_banner'=>is_null($objVideo3->data->query_result[0]->t_url_poster_landscape) ? '' : $objVideo3->data->query_result[0]->t_url_poster_landscape ,
-						  't_id'=>is_null($objVideo3->data->query_result[0]->t_id) ? '' : $objVideo3->data->query_result[0]->t_id,
-						  'session_id'=>$sessionid,
-						  'data'=>$data3);
-
->>>>>>> origin/nonton-rian-version
 			$return["sta"] = "SUCCESS";
 			$return["ret"]["dat"] = encrypt(json_encode($response));
 		}
@@ -142,18 +62,8 @@ function get_video_list($conn, $start, $franchiseid, $category,$country_name)
 	global $return;
 	$the_search_result = array();
 
-<<<<<<< HEAD
 	
 			$json = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape`, `v_season` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." GROUP BY v_franchise_id ORDER BY v_last_updated DESC LIMIT ".$start.",5;", 
-=======
-			// TODO : why are you checking franchise id, why did you put this line below "and f_id > ".$franchiseid."
-			// shouldn't we only check the type and return every franchise with this type? Maybe I'm understanding this code wrong, let me know
-
-			// TODO : where is the pagination? There is only a limit set but no indication where to start counting
-
-			$json = $conn->doQuery("SELECT `f_id`, `f_url_poster_landscape`, `t_name`  
-												FROM  `n_franchise` f, `n_type` t WHERE t.t_id =f.f_type_id AND t.t_id=".$category." and f_id > ".$franchiseid." ORDER BY f_date_added DESC LIMIT ".$limit.";", 
->>>>>>> origin/nonton-rian-version
 										null,'json');
 			//echo json_encode($json);
 			$objVideo = json_decode($json);
@@ -218,15 +128,7 @@ function get_video_list($conn, $start, $franchiseid, $category,$country_name)
 function search_franchise($conn, $kwd, $country_name, $start)
 {
 	global $return;
-<<<<<<< HEAD
 	$json = $conn->doQuery("SELECT COUNT(*),f_country_access,, f_id  FROM (SELECT f_id, f_country_access from n_franchise f 
-=======
-
-	// TODO : I might have understood it wrong, but this code right here checks the genre
-	// while for search, you need to check if the TITLE and ACTOR contains specific keywords
-
-	$json = $conn->doQuery("SELECT count(*) total from n_franchise f 
->>>>>>> origin/nonton-rian-version
 							LEFT JOIN n_genre as g1 on f_genre_id_1=g1.g_id 
 							LEFT JOIN n_genre as g2 on f_genre_id_2=g2.g_id 
 							LEFT JOIN n_genre as g3 on f_genre_id_3=g3.g_id 
@@ -263,14 +165,7 @@ function search_franchise($conn, $kwd, $country_name, $start)
 function get_autocomplete($conn, $kwd, $country_name)
 {
 	global $return;
-<<<<<<< HEAD
 	$json = $conn->doQuery("SELECT `f_name`,`v_franchise_id` FROM `n_video` v, `n_franchise` f WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND upper(f_name) like '%".strtoupper($kwd)."%' GROUP BY F_NAME ORDER BY v_last_updated DESC LIMIT 10;", 
-=======
-
-	// TODO : Auto complete needs to search from Franchise name, Video name and Actor name
-
-	$json = $conn->doQuery("SELECT `f_name`,`v_franchise_id` FROM `n_video` v, `n_franchise` f WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND upper(f_name) like '%".strtoupper($kwd)."%' ORDER BY v_last_updated DESC LIMIT 10;", 
->>>>>>> origin/nonton-rian-version
 										null,'json');
 //echo json_encode($json);	
 $objFranchise = json_decode($json);
@@ -321,13 +216,7 @@ function getCountryByName($conn, $param)
 function get_video_detail($conn,  $videoId=null, $favorite, $activityId)
 {
 	global $return;
-<<<<<<< HEAD
 	//echo $activityId;
-=======
-
-	// TODO : Insert to n_activity table
-
->>>>>>> origin/nonton-rian-version
 	$json=$conn->doQuery("select v_id, t_name, v_title, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id",
 						null,'json');
 	$objVideoDetail=json_decode($json);
@@ -368,16 +257,8 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId)
 	  );
 	//array_push($objVideoDetail->data->query_result, $objEpisode->data->query_result);
 	$return["sta"] = "SUCCESS";
-<<<<<<< HEAD
 	$return["ret"]["dat"] = encrypt(json_encode(array("activityId"=>$activityId,"video"=>$data)));;
 	return $data;
-=======
-
-
-	// TODO : what is this activity id 23? why is it hard coded?
-
-	$return["ret"]["dat"] = encrypt(json_encode(array("activityId"=>"23","video"=>$data)));;
->>>>>>> origin/nonton-rian-version
 	
 }
 
@@ -399,7 +280,6 @@ function update_activity($conn, $av_id,$duration, $share, $resolution, $timeEnd)
 
 function get_comments($conn, $videoId, $start)
 {
-	// TODO : 10 needs to be put inside a variable
 	global $return;
 	$json = $conn->doQuery("SELECT `cm_id`, `u_id`, `u_avatar_url`,`u_username`, `cm_replied_to_id`, `cm_video_id`, `cm_video_name`, `cm_session_id`, `cm_activity_id`, `cm_user_id`, `cm_title`, `cm_body`, `cm_likes`, `cm_dislikes`, `cm_is_active`, `cm_date_created` FROM `n_comment` c, `n_user` u WHERE c.`cm_video_id` = ".$videoId." and u.u_id=c.`cm_user_id`
 							order by cm_date_created desc LIMIT ".$start.",10; ", 
@@ -419,9 +299,6 @@ function get_comments($conn, $videoId, $start)
 
 function insert_comment($conn, $sid, $commentId, $userId, $videoId, $activityId, $title, $body)
 {
-
-	// TODO : replied_to_id should be null or 0 if it's not replyign to any comment, right now in the database everything is replying to id 1
-	
 	$json=$conn->doQuery("insert into n_comment (cm_session_id, Cm_replied_to_id , Cm_user_id , Cm_video_id , Cm_activity_id, Cm_title, Cm_body ) values (".$sid.",".$commentId.",".$userId.",".$videoId.",".$activityId.",'".$title."', '".$body."');",
 						null, 'json');
 	//echo json_encode($json);
@@ -453,18 +330,10 @@ function create_user($conn, $facebookid=null, $deviceid=null,$referalid=null, $e
 		$json = $conn->doQuery("insert into n_user (U_fbid, U_device_id, U_username, U_password, U_fullname,U_gender,U_birthday, U_points, u_avatar_url, u_email) 
 								values ('".facebookid."','".$deviceid."','".$username."','".$password."','".fullname."','".$gender."','".$birthday."',10, '".$photourl."', '".$email."');", 
 											null,'json');
-<<<<<<< HEAD
 		echo json_encode($json);
-=======
-		//echo json_encode($json);
-
-		// TODO : use referral code points as I explained previously
-		$referral_code_points = 10;
-
->>>>>>> origin/nonton-rian-version
 		$insert=json_decode($json);
 		$data=array("u_id"=>$insert->data->query_id,
-					"points"=>$referral_code_points
+					"points"=>10
 				);
 	
 		$return["sta"] = "SUCCESS";

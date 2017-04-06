@@ -6,7 +6,6 @@ function GetClientExtraAPI($jsonaction, $data)
 
 	switch( (string)$jsonaction )
 	{	
-		// TODO : where is get_similar_videos
 		case "sample":
 		{
 			$conn = new database();
@@ -134,8 +133,7 @@ function GetClientExtraAPI($jsonaction, $data)
 				$rsSession=get_session($conn, $captureddata->sid);
 				$country_name=$rsSession[0]->s_origin_country_name;
 				//echo $country_name;
-				$search_limit = 10;
-				$page=$search_limit*$captureddata->pg;
+				$page=10*$captureddata->pg;
 				search_franchise($conn, $captureddata->kwd,$country_name, $page);
 			}
 			else
@@ -279,7 +277,6 @@ function GetClientExtraAPI($jsonaction, $data)
 			if(isset($captureddata->sid) && isset($captureddata->commentId) && isset($captureddata->userId) && isset($captureddata->activityId))
 			{
 				//$page=10*$captureddata->pg;
-				// TODO : not implemented yet
 				like_comment($conn, $captureddata->sid, $captureddata->userid, $captureddata->activityId, $captureddata->commentId);
 				$return["sta"] = "SUCCESS";
 			}
