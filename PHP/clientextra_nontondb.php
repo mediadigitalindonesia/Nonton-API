@@ -67,15 +67,15 @@ function GetClientExtraAPI($jsonaction, $data)
 					 's_client_id'=>'',
 					 's_client_name'=>''
 					);
-			$rzSession=insert_session($conn, $param);
+			$rsSession=insert_session($conn, $param);
 			//echo json_encode($rzSession);
 			if(isset($captureddata->ip) && isset($captureddata->aps) && isset($captureddata->apv) && isset($captureddata->uid) && isset($captureddata->fid) && isset($captureddata->did) )
 			{
 				//echo $captureddata->ip;
 				
-				get_initial_content($conn, $captureddata->aps, $country_name, $rzSession->data->query_id);
+				get_initial_content($conn, $captureddata->aps, $country_name, $rsSession->data->query_id);
 				$param=array(
-						"an_session_id"=>"",
+						"an_session_id"=>$rsSession->data->query_id,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -193,7 +193,7 @@ function GetClientExtraAPI($jsonaction, $data)
 				$activity=insert_activity($conn, $captureddata->sid,$captureddata->videoId );
 				if($captureddata->activityId!="")
 					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->nShares, $captureddata->resolution, $captureddata->timeEnd);
-				echo json_encode($activity);
+				//echo $activity->data->query_id;
 				$data=get_video_detail($conn,  $captureddata->videoId, $favorite, $activity->data->query_id);
 				
 			}
@@ -485,7 +485,33 @@ function GetClientExtraAPI($jsonaction, $data)
 			break;
 		}
 		
-		
+		case "cli_get_video_list_old":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->lim) && isset($captureddata->fid) && isset($captureddata->cat))
+			{
+				//echo $captureddata->ip;
+				$rsSession=get_session($conn, $captureddata->sid);
+				$country_name=$rsSession[0]->s_origin_country_name;
+				get_video_list_old($conn, $captureddata->lim, $captureddata->fid, $captureddata->cat,$country_name);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			$param=array(
+					'sessionid'=>$captureddata->sid,
+					'an_name'=>'cli_get_video_list',
+					'an_note'=>'',
+					'an_is_valid'=>0);
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
 		default:
 		{
 			$return["evn"] = "unknown";
