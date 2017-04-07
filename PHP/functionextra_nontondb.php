@@ -2,6 +2,8 @@
 function get_initial_content($conn, $app_signature, $country_name, $sessionid)
 {
 	global $return;
+	if(strtoupper($country_name)=='ALL')
+		$country_name="";
 	$the_search_result = array();
 
 	$json = $conn->doQuery("select `cl_id`,`cl_name`,`cl_latest_version`,`cl_force_update`,`cl_rules_paid`,`cl_is_active`,`cl_creator_id`, `cl_date_created` from `n_client` where `cl_name`='".$app_signature."' LIMIT 1;", null,'json');
@@ -51,7 +53,7 @@ function get_content($conn, $typeid)
 		$limit=4;
 	else
 		$limit=7;
-	$json = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$typeid." group by v_franchise_id  ORDER BY v_last_updated DESC LIMIT ".$limit.";", 
+	$json = $conn->doQuery("SELECT `v_franchise_id`,`v_id`, f_name `v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$typeid." group by v_franchise_id  ORDER BY v_last_updated DESC LIMIT ".$limit.";", 
 										null,'json');
 	$objVideo = json_decode($json);
 	return $objVideo->data->query_result;
@@ -60,6 +62,8 @@ function get_content($conn, $typeid)
 function get_video_list($conn, $start, $franchiseid, $category,$country_name)
 {
 	global $return;
+	if(strtoupper($country_name)=='ALL')
+		$country_name="";
 	$the_search_result = array();
 
 	
@@ -128,13 +132,15 @@ function get_video_list($conn, $start, $franchiseid, $category,$country_name)
 function search_franchise($conn, $kwd, $country_name, $start)
 {
 	global $return;
+	if(strtoupper($country_name)=='ALL')
+		$country_name="";
 	$json = $conn->doQuery("SELECT COUNT(*),f_country_access,, f_id  FROM (SELECT f_id, f_country_access from n_franchise f 
 							LEFT JOIN n_genre as g1 on f_genre_id_1=g1.g_id 
 							LEFT JOIN n_genre as g2 on f_genre_id_2=g2.g_id 
 							LEFT JOIN n_genre as g3 on f_genre_id_3=g3.g_id 
 							LEFT JOIN n_genre as g4 on f_genre_id_4=g4.g_id 
 							LEFT JOIN n_genre as g5 on f_genre_id_5=g5.g_id) tino
-								where upper(f_country_access) like '%".strtoupper($country_name)."%' group by f_id;", 
+								where upper(f_country_access) like '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%' group by f_id;", 
 										null,'json');
 	$count = json_decode($json)->data->query_result[0]->total;
 	$json = $conn->doQuery("SELECT * FROM (SELECT distinct(f_id), 	v_url_youtube_id, v_url_cdn, f_url_poster, f_url_poster_landscape, f_synopsis, f_name, f_company, f_country_access, ifnull(g1.g_id, '') g_id1, ifnull(g1.g_name, '') g_name1, ifnull(g2.g_id, '') g_id2,  ifnull(g2.g_name, '') g_name2, ifnull(g3.g_id,'') g_id3, ifnull(g3.g_name,'') g_name3, ifnull(g4.g_id,'') g_id4,   ifnull(g4.g_name,'') g_name4,ifnull(g5.g_id, '') g_id5,  ifnull(g5.g_name, '') g_name5
@@ -145,7 +151,7 @@ function search_franchise($conn, $kwd, $country_name, $start)
 							LEFT JOIN n_genre as g3 on f_genre_id_3=g3.g_id 
 							LEFT JOIN n_genre as g4 on f_genre_id_4=g4.g_id 
 							LEFT JOIN n_genre as g5 on f_genre_id_5=g5.g_id) tino
-								where upper(f_name) like '%".strtoupper($kwd)."%' and upper(f_country_access) like '%".strtoupper($country_name)."%' group by f_id
+								where upper(f_name) like '%".strtoupper($kwd)."%' and (upper(f_country_access) like '%".strtoupper($country_name)."%' OR UPPER(f_country_access ) LIKE '%ALL%') group by f_id
 							LIMIT ".$start.",10;", 
 										null,'json');
 	if(($start+1)<$count/10)
@@ -165,6 +171,8 @@ function search_franchise($conn, $kwd, $country_name, $start)
 function get_autocomplete($conn, $kwd, $country_name)
 {
 	global $return;
+	if(strtoupper($country_name)=='ALL')
+		$country_name="";
 	$json = $conn->doQuery("SELECT `f_name`,`v_franchise_id` FROM `n_video` v, `n_franchise` f WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND upper(f_name) like '%".strtoupper($kwd)."%' GROUP BY F_NAME ORDER BY v_last_updated DESC LIMIT 10;", 
 										null,'json');
 //echo json_encode($json);	
@@ -213,11 +221,11 @@ function getCountryByName($conn, $param)
 	return $objCountry->data->query_result;
 }
 
-function get_video_detail($conn,  $videoId=null, $favorite, $activityId)
+function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid)
 {
 	global $return;
 	//echo $activityId;
-	$json=$conn->doQuery("select v_id, t_name, v_title, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id",
+	$json=$conn->doQuery("select v_id, t_name, v_title, v_price, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id",
 						null,'json');
 	$objVideoDetail=json_decode($json);
 	$json=$conn->doQuery("select v_id, v_title, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id=".$objVideoDetail->data->query_result[0]->v_franchise_id." and v_season=".$objVideoDetail->data->query_result[0]->v_season,
@@ -235,6 +243,33 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId)
 						null,'json');
 	$objCount=json_decode($json);
 	$objEpisode=json_decode($json);
+	
+	
+	//check eligible
+	if((int)$objVideoDetail->data->query_result[0]->v_price>0)
+	{
+		$json=$conn->doQuery("select u_subscription_end  from n_user where u_id=".$userid,
+							null,'json');
+		$subsDate=strtotime(json_decode($json)->data->query_result[0]->u_subscription_end);
+			if($subsDate<date('Y-m-d H:i:s'))
+			{
+				$json=$conn->doQuery("select ppv_date_ended  from n_pay_per_view where ppv_user_id='".$userid."' and ppv_video_id='".$videoId."'",
+							null,'json');
+				$payDate=strtotime(json_decode($json)->data->query_result[0]->ppv_date_ended);
+				if($payDate<date('Y-m-d H:i:s'))
+					$eligible=false;
+				else
+					$eligible=true;
+			}
+			else
+				$eligible=true;
+	}
+	else
+	{
+		$eligible=true;
+	}
+		
+		
 	$data=array(
 	  "v_id" => $objVideoDetail->data->query_result[0]->v_id,
 	  "category"=>  $objVideoDetail->data->query_result[0]->t_name,
@@ -252,6 +287,7 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId)
 	  "v_url_cdn"=> $objVideoDetail->data->query_result[0]->v_url_cdn,
 	  "views"=>$objCount->data->query_result[0]->total,
 	  "favorite"=>$favorite,
+	  "eligible"=>$eligible,
 	  "similiar_video"=>$objSimiliarVideo->data->query_result,
 	  "episode"=> $objEpisode->data->query_result
 	  );
@@ -406,8 +442,8 @@ function purchase_video($conn, $sid, $userid, $videoid, $usetoken)
 			
 			break;
 		}
-		$json = $conn->doQuery("update n_user set `u_points`= ".((int)$user->data->query_result[0]->u_points-(int)$point)." where  `u_id` = '".$userid."';", 
-											null,'json');
+		/*$json = $conn->doQuery("update n_user set `u_points`= ".((int)$user->data->query_result[0]->u_points-(int)$point)." where  `u_id` = '".$userid."';", 
+											null,'json');*/
 		//echo json_encode($json);
 	}
 	else
@@ -416,9 +452,12 @@ function purchase_video($conn, $sid, $userid, $videoid, $usetoken)
 		$amount=$video->data->query_result[0]->v_price;
 	}
 		
-	$json = $conn->doQuery("insert into n_pay_per_view (ppv_user_id, ppv_video_id, ppv_session_id,ppv_points_used, ppv_amount_paid) 
+	/*$json = $conn->doQuery("insert into n_pay_per_view (ppv_user_id, ppv_video_id, ppv_session_id,ppv_points_used, ppv_amount_paid) 
 							values ('".$userid."','".$videoid."','".$sid."',".$point.", ".$amount.");", 
-										null,'json');
+										null,'json');*/
+	//echo json_encode($json);
+	$json = $conn->doQuery("call purchase_video('".$userid."','".$videoId."','".$sid."',".$point.",".$amount.");", 
+											null,'json');
 	//echo json_encode($json);
 	$json = $conn->doQuery("SELECT `u_id`, `u_points` FROM `n_user` u WHERE `u_id` = '".$userid."';", 
 										null,'json');
@@ -436,19 +475,22 @@ function add_subscription($conn, $sid, $userid, $type)
 {
 	global $return;
 	if($type=="week")
-		$date=date('Y-m-d', strtotime(' +7 day'));
+		$day=7;
 	else
-		$date=date('Y-m-d', strtotime(' +2 month'));
+		$day=30;
 	$json = $conn->doQuery("insert into n_pay_subscription (ps_user_id, ps_session_id,ps_type) 
 							values ('".$userid."','".$sid."','".$type."');", 
 										null,'json');
-	
-	$json = $conn->doQuery("SELECT `u_id`, `u_points` FROM `n_user` u WHERE `u_username` = '".$userid."';", 
+	$json = $conn->doQuery("call add_subscription('".$userid."', ".$day.");", 
 										null,'json');
+										
+	$json = $conn->doQuery("SELECT `u_id`, `u_points`, u_subscription_end FROM `n_user` WHERE `u_id` = ".$userid.";", 
+										null,'json');
+	//echo json_encode($json);
 	$user=json_decode($json);
 	$data=array(
 				"u_points"=>$user->data->query_result[0]->u_points,
-				"expirationdate"=>$date
+				"expirationdate"=>$user->data->query_result[0]->u_subscription_end,
 				);
 	$return["sta"] = "SUCCESS";
 	$return["ret"]["dat"] = encrypt(json_encode($data));
@@ -487,49 +529,294 @@ function dislike()
 function get_video_list_old($conn, $limit, $franchiseid, $category,$country_name)
 {
 	global $return;
+	if(strtoupper($country_name)=='ALL')
+		$country_name='';
 	$the_search_result = array();
 			// TODO : why are you checking franchise id, why did you put this line below "and f_id > ".$franchiseid."
 			// shouldn't we only check the type and return every franchise with this type? Maybe I'm understanding this code wrong, let me know
 			// TODO : where is the pagination? There is only a limit set but no indication where to start counting
 			$json = $conn->doQuery("SELECT `f_id`, `f_url_poster_landscape`, `t_name`  
-												FROM  `n_franchise` f, `n_type` t WHERE t.t_id =f.f_type_id AND t.t_id=".$category." and f_id > ".$franchiseid." ORDER BY f_date_added DESC LIMIT ".$limit.";", 
+												FROM  `n_franchise` f, `n_type` t WHERE t.t_id =f.f_type_id AND t.t_id=".$category." and f_id > ".$franchiseid." ORDER BY f_date_added ASC LIMIT 5;", 
 										null,'json');
 			$objFranchise = json_decode($json);
 			$banner=null;
 			$dataTotal=null;
 			$dataCat=array();
 			$lastFid=array();
-			foreach($objFranchise->data->query_result as $row)
+			if($category==1 || $category==2)
 			{
-				$json = $conn->doQuery("SELECT distinct(`v_id`),`v_franchise_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=".$row->f_id." AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') ORDER BY v_last_updated DESC;", 
-									    null,'json');
-				$objVideo = json_decode($json);
-				$dataVid=array();
-					foreach($objVideo->data->query_result as $rows)
+				$max=5;
+				$min=3;
+			}
+			else
+			{
+				$max=7;
+				$min=7;
+			}
+			if($category==1 || $category==2)
+			{
+				foreach($objFranchise->data->query_result as $row)
+				{
+					$json = $conn->doQuery("SELECT count(distinct(v_id)) total,`v_id`,`v_franchise_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=".$row->f_id." AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%')  ORDER BY v_last_updated DESC;", 
+											null,'json');
+					$count= json_decode($json)->data->query_result[0]->total;
+					$objVideo = json_decode($json);
+					
+					
+						if($count>=3 && $count<5)
+							$limit=3;
+						else if($count>=5)
+							$limit=5;
+						else
+							$limit=0;
+					
+					
+					if((int)$limit>0)
 					{
-						$dataVid[]=array(
-								"v_id"=> $rows->v_id,
-								"v_franchise_id"=> $rows->v_franchise_id,
-								"v_title"=> $rows->v_title,
-								"v_url_youtube_id"=> $rows->v_url_youtube_id,
-								"v_url_cdn"=> $rows->v_url_cdn,
-								"v_prioritize_youtube"=> $rows->v_prioritize_youtube,
-								"v_url_poster"=> $rows->v_url_poster,
-								"v_url_poster_landscape"=> $rows->v_url_poster_landscape
-								);
+						$json = $conn->doQuery("SELECT `v_id`,`v_franchise_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,'' `v_url_poster`, `v_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=".$row->f_id." AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') group by v_id ORDER BY v_last_updated DESC LIMIT ".$limit.";", 
+											null,'json');
+						$objVideo = json_decode($json);
+						$dataVid=$objVideo->data->query_result;
+						$dataCat[]=array(
+										"f_id"=> $row->f_id,
+										"f_url_poster_landscape"=> $row->f_url_poster_landscape,
+										"t_name"=>$row->t_name,
+										"data_vid"=>$dataVid);	
+						if($lastFid[0]<$row->f_id)
+							$lastFid[0]=$row->f_id;
 					}
-				$dataCat[]=array(
-								"f_id"=> $row->f_id,
-								"f_url_poster_landscape"=> $row->f_url_poster_landscape,
-								"t_name"=>$row->t_name,
-								"data_vid"=>$dataVid);	
-				if($lastFid[0]<$row->f_id)
-					$lastFid[0]=$row->f_id;
+				}
+				
+			}
+			else
+			{
+				$json = $conn->doQuery("SELECT g_id, g_name, g_banner_url from n_genre group by g_id LIMIT ".$franchiseid.",5;", null,'json');
+				//
+				$objGenre = json_decode($json);
+				$json = $conn->doQuery("SELECT count(*) total from n_genre", null,'json');
+				$objCount=json_decode($json);
+				$count=$objCount->data->query_result[0]->total;
+				foreach( $objGenre->data->query_result as $row )
+				{
+					$genreId=$row->g_id;
+					//echo $genreId;
+					$json = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape`, `v_season`, `f_genre_id_1` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." AND f.f_genre_id_1=".$genreId." GROUP BY f_genre_id_1 ORDER BY v_last_updated DESC LIMIT ".$franchiseid.",5;", null,'json');
+					//echo $json;
+					$objVideo = json_decode($json);
+					//foreach($objVideo->data->query_result as $row)
+					//{
+						// check how many videos we have that has this specific genre
+						$json = $conn->doQuery("SELECT count(*) total FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND f_genre_id_1='".$genreId."' AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') ORDER BY v_last_updated DESC;", null,'json');
+						$objCount=json_decode($json);
+						$videoCount=$objCount->data->query_result[0]->total;
+
+						$maxNumberOfRowsToBeViewed = 2;
+						// if we do that means this is a franchise without any episodes (for examples: movies, premium)
+						if( $videoCount > 0 )
+						{
+							$base_calculation = 3;
+
+							$totalVideoToReturn = $maxNumberOfRowsToBeViewed * $base_calculation;
+
+							// if the latest season is not 1, the total video returned is as defined above
+							if( $videoCount >= 7) 
+							{
+								$totalVideoToReturn =7;
+							}
+							else if ($videoCount >= 4 && $videoCount <7 )
+							{
+								$totalVideoToReturn = 4;
+							}
+							else
+							{
+								$totalVideoToReturn = 0;
+							}
+								
+							
+							
+
+							// get the list of video
+							$jsonVideo = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,
+													CASE WHEN v_url_poster = ''
+														THEN 'http://new.nonton.com/comm/images/posters/222_potrait.jpg'
+														ELSE v_url_poster
+													END AS v_url_poster,
+												 '' `v_url_poster_landscape`  FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND f_genre_id_1=".$genreId." AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." and v.v_franchise_id=f.f_id group by v_id ORDER BY v_episode ASC LIMIT ".$totalVideoToReturn.";", 
+												null,'json');
+												//echo json_encode($jsonVideo).'<br>';
+							$objVideo = json_decode($jsonVideo);
+							$data=$objVideo->data->query_result;
+						}
+					//}
+					$dataCat[]=array(
+										"f_id"=> $genreId,
+										"f_url_poster_landscape"=> "",
+										"t_name"=>'Premium',
+										"data_vid"=>$data);
+			
+				}
 			}
 			
-			$videoList=array("next_id"=>$lastFid[0], "data"=>$dataCat);
+			$videoList=array("next_id"=>$franchiseid+5, "data"=>$dataCat);
 			$return["sta"] = "SUCCESS";
 			$return["ret"]["dat"] = encrypt(json_encode($videoList));
 				
+}
+
+function get_video_list_tino($conn, $start, $franchiseid, $category,$country_name)
+{
+	global $return;
+	$the_search_result = array();
+
+	$isEpisodic = false;
+	
+	$json = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape`, `v_season` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." GROUP BY v_franchise_id ORDER BY v_last_updated DESC LIMIT ".$start.",5;", 
+		null,'json');
+	//echo json_encode($json);
+	$objVideo = json_decode($json);
+
+	$totalFranchise = 0;
+	
+	$json = $conn->doQuery("SELECT count(*) total FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." ORDER BY v_last_updated DESC;", null,'json');
+	$count = json_decode($json)->data->query_result[0]->total;
+	
+	$data=array();
+	foreach($objVideo->data->query_result as $row)
+	{
+		// check if we have any video from season -1
+		$json = $conn->doQuery("SELECT count(DISTINCT v_episode) total FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_season=-1 AND v_is_featured=1 AND v_is_active =1 AND v_franchise_id='".$row->v_franchise_id."' AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') ORDER BY v_last_updated DESC;", 
+							    null,'json');
+		$objCount=json_decode($json);
+		$count=$objCount->data->query_result[0]->total;
+
+		$maxNumberOfRowsToBeViewed = 2;
+		// if we do that means this is a franchise without any episodes (for examples: movies, premium)
+		// it will be handled down below
+		if( $count > 0 )
+		{
+			// every video, based on the type should be the same
+			// so if 1 video has season = -1, that means all video for this category will have it as well
+			// which also means this type is not a serial type
+			break;
+		}
+		else
+		{
+			$base_calculation = 2;
+			$isEpisodic = true;
+
+			// get the highest season
+			$jsonSeason = $conn->doQuery("SELECT MAX(v_season) as `max` FROM `n_video`, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_franchise_id='".$row->v_franchise_id."' AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." ORDER BY v_last_updated ;", 
+								null,'json');
+
+			$objSeason = json_decode($jsonSeason);
+			$theLatestSeason = $objSeason->data->query_result[0]->max;
+
+			// now we know what the latest season number is, we also know the first season has to be 1
+			// from then on it's easy, we just need to count the number of episode in the latest season
+			$jsonCount = $conn->doQuery("SELECT count(*) total FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_franchise_id='".$row->v_franchise_id."' AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." ORDER BY v_last_updated ;", 
+								null,'json');
+			$objCount = json_decode($jsonCount);
+			$theTotalEpisodeInLatestSeason=$objCount->data->query_result[0]->total;
+
+			$totalVideoToReturn = $maxNumberOfRowsToBeViewed * $base_calculation;
+
+			// if the latest season is not 1, the total video returned is as defined above
+			if( $theLatestSeason > 1 || ($theLatestSeason == 1 && $theTotalEpisodeInLatestSeason >= $totalVideoToReturn) )
+			{
+				//$totalVideoToReturn doesn't change
+			}
+			else //if( $theLatestSeason == 1 && $theTotalEpisodeInLatestSeason < $base_calculation )
+			{
+				$totalVideoToReturn = (int)((int)$theTotalEpisodeInLatestSeason / (int)$base_calculation) * $base_calculation;
+			}
+
+			// the banner should always return video of season 1 episode 1
+			$jsonBanner = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`, '' `v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape`, `v_season` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_season=1 AND v_episode=1 AND v_is_featured=1 AND v_is_active =1 AND v_franchise_id='".$row->v_franchise_id."' AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." group by v_id ORDER BY v_episode ASC LIMIT 1;", 
+								null,'json');
+			$objBanner = json_decode($jsonBanner);
+			$data[]=$objBanner->data->query_result;
+
+			// get the list of video
+			$jsonVideo = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`, '' `v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape`, `v_season` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND v_franchise_id='".$row->v_franchise_id."' AND  (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." group by v_id ORDER BY v_episode ASC LIMIT ".$totalVideoToReturn.";", 
+								null,'json');
+			$objVideo = json_decode($jsonVideo);
+			$data[]=$objVideo->data->query_result;
+		}
+	}
+
+	// this portion of code will be called if it's a non episodic type (movie, premium, etc)
+	if( $isEpisodic == false )
+	{
+		// for now, because of the limitation of amount of movies in specific genre, we only want to show those with genre_id 1-4
+		// the rest will be put in a special category
+		$json = $conn->doQuery("SELECT g_id, g_banner_url from n_genre LIMIT ".$start.",5", null,'json');
+		$objGenre = json_decode($json);
+		$json = $conn->doQuery("SELECT count(*) total from n_genre", null,'json');
+		$objCount=json_decode($json);
+		$count=$objCount->data->query_result[0]->total;
+		foreach( $objGenre->data->query_result as $row  )
+		{
+			$genreId=$row->g_id;
+			$json = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape`, `v_season`, `f_genre_id_1` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." AND f.f_genre_id_1=".$genreId." GROUP BY f_genre_id_1 ORDER BY v_last_updated DESC LIMIT ".$start.",5;", null,'json');
+			
+			$objVideo = json_decode($json);
+			foreach($objVideo->data->query_result as $row)
+			{
+				// check how many videos we have that has this specific genre
+				$json = $conn->doQuery("SELECT count(*) total FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND f_genre_id_1='".$row->f_genre_id_1."' AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') ORDER BY v_last_updated DESC;", null,'json');
+				$objCount=json_decode($json);
+				$videoCount=$objCount->data->query_result[0]->total;
+
+				$maxNumberOfRowsToBeViewed = 2;
+				// if we do that means this is a franchise without any episodes (for examples: movies, premium)
+				if( $videoCount > 0 )
+				{
+					$base_calculation = 3;
+
+					$totalVideoToReturn = $maxNumberOfRowsToBeViewed * $base_calculation;
+
+					// if the latest season is not 1, the total video returned is as defined above
+					if( $videoCount >= $totalVideoToReturn) 
+					{
+						//$totalVideoToReturn doesn't change
+					}
+					else 
+					{
+						$totalVideoToReturn = (int)((int)$videoCount / (int)$base_calculation) * $base_calculation;
+					}
+
+					$totalVideoToReturn + 1;
+
+					// get the list of video
+					$jsonVideo = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, '' `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape`, `v_season`, `f_genre_id_1`,  '".$row->g_banner_url."' g_banner_url FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND f_genre_id_1=".$genreId." AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." group by v_id ORDER BY v_episode ASC LIMIT ".$totalVideoToReturn.";", 
+										null,'json');
+					$objVideo = json_decode($jsonVideo);
+					$data[]=$objVideo->data->query_result;
+				}
+			}
+			
+		}
+
+	}
+
+	// TODO : fix the pagination here
+	if(($start+1)<$count)
+	{
+		$nextPage=true;
+	}
+	else
+	{
+		$nextPage=false;
+	}
+	//$videoList=array("next_id"=>$lastFid[0], "data"=>$dataCat);
+	$return["sta"] = "SUCCESS";
+	$return["ret"]["dat"] = encrypt(json_encode(array("nextPage"=>$nextPage,"listVideo"=>$data)));
+				
+}
+
+function check_session($conn, $sessionid)
+{
+	$json=$conn->doQuery("SELECT s_user_id from n_session;", null, 'json');
+	return json_decode($json);
 }
 ?>

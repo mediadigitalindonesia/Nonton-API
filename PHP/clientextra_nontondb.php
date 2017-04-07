@@ -190,11 +190,12 @@ function GetClientExtraAPI($jsonaction, $data)
 			if(isset($captureddata->sid) && isset($captureddata->activityId) && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->timeEnd))
 			{
 				$favorite=check_favorite($conn, $captureddata->sid, $captureddata->videoId);
+				$session=check_session($conn, $captureddata->sid);
 				$activity=insert_activity($conn, $captureddata->sid,$captureddata->videoId );
 				if($captureddata->activityId!="")
 					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->nShares, $captureddata->resolution, $captureddata->timeEnd);
 				//echo $activity->data->query_id;
-				$data=get_video_detail($conn,  $captureddata->videoId, $favorite, $activity->data->query_id);
+				$data=get_video_detail($conn,  $captureddata->videoId, $favorite, $activity->data->query_id, $session->data->query_result[0]->s_user_id);
 				
 			}
 			else
@@ -497,6 +498,36 @@ function GetClientExtraAPI($jsonaction, $data)
 				$rsSession=get_session($conn, $captureddata->sid);
 				$country_name=$rsSession[0]->s_origin_country_name;
 				get_video_list_old($conn, $captureddata->lim, $captureddata->fid, $captureddata->cat,$country_name);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			$param=array(
+					'sessionid'=>$captureddata->sid,
+					'an_name'=>'cli_get_video_list',
+					'an_note'=>'',
+					'an_is_valid'=>0);
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_get_video_list_tino":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->pg) && isset($captureddata->cat))
+			{
+				//echo $captureddata->ip;
+				$rsSession=get_session($conn, $captureddata->sid);
+				$country_name=$rsSession[0]->s_origin_country_name;
+				$lim=5;
+				$page=$lim*$captureddata->pg;
+				get_video_list_tino($conn, $page, $captureddata->fid, $captureddata->cat,$country_name);
 			}
 			else
 			{
