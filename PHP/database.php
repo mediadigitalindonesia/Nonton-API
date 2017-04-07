@@ -113,6 +113,7 @@ final class database{
                 break;
             case "insert":
             case "update":
+			case "call":
             case "delete":
                 try{
                     $query = $this->dbconn->prepare($qstring);
