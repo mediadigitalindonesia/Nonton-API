@@ -191,6 +191,7 @@ function GetClientExtraAPI($jsonaction, $data)
 			{
 				$favorite=check_favorite($conn, $captureddata->sid, $captureddata->videoId);
 				$session=check_session($conn, $captureddata->sid);
+				//echo $session;
 				$activity=insert_activity($conn, $captureddata->sid,$captureddata->videoId );
 				if($captureddata->activityId!="")
 					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->nShares, $captureddata->resolution, $captureddata->timeEnd);
@@ -332,8 +333,8 @@ function GetClientExtraAPI($jsonaction, $data)
 			if( isset($captureddata->sid) &&isset($captureddata->email) && isset($captureddata->password) && isset($captureddata->facebookid) )
 			{
 				//$page=10*$captureddata->pg;
-				load_user($conn, $captureddata->uname, $captureddata->password,$captureddata->facebookid);
-				$return["sta"] = "SUCCESS";
+				load_user($conn, $captureddata->email, $captureddata->password,$captureddata->facebookid, $captureddata->sid);
+				//$return["sta"] = "SUCCESS";
 			}
 			else
 			{

@@ -67,7 +67,7 @@ function get_video_list($conn, $start, $franchiseid, $category,$country_name)
 	$the_search_result = array();
 
 	
-			$json = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape`, `v_season` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." GROUP BY v_franchise_id ORDER BY v_last_updated DESC LIMIT ".$start.",5;", 
+			$json = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,`v_url_poster`, `v_url_poster_landscape`, `t_name`, `t_id`, `t_url_poster_landscape`, `v_season` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=f.f_id AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." GROUP BY v_franchise_id ORDER BY v_franchise_id DESC LIMIT ".$start.",5;", 
 										null,'json');
 			//echo json_encode($json);
 			$objVideo = json_decode($json);
@@ -251,15 +251,25 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 		$json=$conn->doQuery("select u_subscription_end  from n_user where u_id=".$userid,
 							null,'json');
 		$subsDate=strtotime(json_decode($json)->data->query_result[0]->u_subscription_end);
-			if($subsDate<date('Y-m-d H:i:s'))
+		//echo $json;
+			if($subsDate<time())
 			{
+				//echo $subsDate;
 				$json=$conn->doQuery("select ppv_date_ended  from n_pay_per_view where ppv_user_id='".$userid."' and ppv_video_id='".$videoId."'",
 							null,'json');
 				$payDate=strtotime(json_decode($json)->data->query_result[0]->ppv_date_ended);
-				if($payDate<date('Y-m-d H:i:s'))
+				//echo $payDate;
+				if($payDate<time())
+				{
+					
 					$eligible=false;
+				}	
 				else
+				{
+					echo 'true';
 					$eligible=true;
+				}
+					
 			}
 			else
 				$eligible=true;
@@ -267,8 +277,8 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 	else
 	{
 		$eligible=true;
-	}
 		
+	}
 		
 	$data=array(
 	  "v_id" => $objVideoDetail->data->query_result[0]->v_id,
@@ -350,10 +360,18 @@ function create_user($conn, $facebookid=null, $deviceid=null,$referalid=null, $e
 	if(isset($user->data->query_result[0]->u_id))
 	{
 		$return["sta"] = "USER ALREADY REGISTERED";
+		$json = $conn->doQuery("SELECT `u_id`, `u_points` points, u_fullname, u_avatar_url, u_subscription_end FROM `n_user` u WHERE `u_id` = ".$user->data->query_result[0]->u_id.";", 
+										null,'json');
+		$objUser = json_decode($json);
+		$data=$objUser->data->query_result[0];
+	
+		$return["ret"]["dat"] = encrypt(json_encode($data));
 		//echo "test";
 	}
 	else
 	{
+		if($birthday=="")
+			$birthday='1900-01-01';
 		$json=$conn->doQuery("SELECT u_id, u_points FROM n_user WHERE u_referral_id='".$referalid."';",
 							null,'json');
 		$check=json_decode($json);
@@ -366,11 +384,12 @@ function create_user($conn, $facebookid=null, $deviceid=null,$referalid=null, $e
 		$json = $conn->doQuery("insert into n_user (U_fbid, U_device_id, U_username, U_password, U_fullname,U_gender,U_birthday, U_points, u_avatar_url, u_email) 
 								values ('".facebookid."','".$deviceid."','".$username."','".$password."','".fullname."','".$gender."','".$birthday."',10, '".$photourl."', '".$email."');", 
 											null,'json');
-		echo json_encode($json);
+		//echo json_encode($json);
 		$insert=json_decode($json);
-		$data=array("u_id"=>$insert->data->query_id,
-					"points"=>10
-				);
+		$json = $conn->doQuery("SELECT `u_id`, `u_points` points, u_fullname, u_avatar_url, u_subscription_end FROM `n_user` u WHERE `u_id` = ".$insert->data->query_id.";", 
+										null,'json');
+		$objUser = json_decode($json);
+		$data=$objUser->data->query_result[0];
 	
 		$return["sta"] = "SUCCESS";
 		$return["ret"]["dat"] = encrypt(json_encode($data));
@@ -378,30 +397,34 @@ function create_user($conn, $facebookid=null, $deviceid=null,$referalid=null, $e
 		
 }
 
-function load_user($conn, $uname, $password, $facebookid)
+function load_user($conn, $email, $password, $facebookid, $sid)
 {
 	global $return;
 	if($email == '')
 	{
-		$json = $conn->doQuery("SELECT `u_id`, `u_points` FROM `n_user` u WHERE `u_fbid` = '".$facebookid."';", 
+		$json = $conn->doQuery("SELECT `u_id`, `u_points`, u_fullname, u_avatar_url, u_subscription_end FROM `n_user` u WHERE `u_fbid` = '".$facebookid."';", 
 										null,'json');
 		$objUser = json_decode($json);
 	}
 	else
 	{
-		$json = $conn->doQuery("SELECT `u_id`, `u_points` FROM `n_user` u WHERE `u_email` = '".$uname."' and u_password='".$password."';", 
+		$json = $conn->doQuery("SELECT `u_id`, `u_points`, u_fullname, u_avatar_url, u_email, u_subscription_end FROM `n_user` u WHERE `u_email` = '".$email."' and u_password='".$password."';", 
 										null,'json');
 		$objUser = json_decode($json);
+		//echo $json;
 	}
-	if($objUser->data->query_result[0]==null)
+	if($objUser->data->query_result[0]==null || $objUser->data->query_result[0]=='')
 	{
 		$return["sta"] = "EMAIL/PASSWORD NOT VALID";
 	}
 	else
 	{
+		$json = $conn->doQuery("UPDATE n_session set s_user_id='".$objUser->data->query_result[0]->u_id."' where s_id=".$sid.";", 
+										null,'json');
 		$return["sta"] = "SUCCESS";
-	}		
 		$return["ret"]["dat"] = encrypt(json_encode($objUser->data->query_result[0]));
+	}		
+		
 	
 }
 
@@ -536,7 +559,7 @@ function get_video_list_old($conn, $limit, $franchiseid, $category,$country_name
 			// shouldn't we only check the type and return every franchise with this type? Maybe I'm understanding this code wrong, let me know
 			// TODO : where is the pagination? There is only a limit set but no indication where to start counting
 			$json = $conn->doQuery("SELECT `f_id`, `f_url_poster_landscape`, `t_name`  
-												FROM  `n_franchise` f, `n_type` t WHERE t.t_id =f.f_type_id AND t.t_id=".$category." and f_id > ".$franchiseid." ORDER BY f_date_added ASC LIMIT 5;", 
+												FROM  `n_franchise` f, `n_type` t WHERE t.t_id =f.f_type_id AND t.t_id=".$category." ORDER BY f_date_added ASC LIMIT ".$franchiseid.",5;", 
 										null,'json');
 			$objFranchise = json_decode($json);
 			$banner=null;
@@ -816,7 +839,8 @@ function get_video_list_tino($conn, $start, $franchiseid, $category,$country_nam
 
 function check_session($conn, $sessionid)
 {
-	$json=$conn->doQuery("SELECT s_user_id from n_session;", null, 'json');
+	$json=$conn->doQuery("SELECT s_user_id from n_session where s_id=".$sessionid.";", null, 'json');
+	//echo $json;
 	return json_decode($json);
 }
 ?>
