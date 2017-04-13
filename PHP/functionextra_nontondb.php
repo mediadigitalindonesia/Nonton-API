@@ -228,7 +228,7 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 	$json=$conn->doQuery("select v_id, t_name, v_title, v_price, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id",
 						null,'json');
 	$objVideoDetail=json_decode($json);
-	$json=$conn->doQuery("select v_id, v_title, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id=".$objVideoDetail->data->query_result[0]->v_franchise_id." and v_season=".$objVideoDetail->data->query_result[0]->v_season,
+	$json=$conn->doQuery("select v_id, v_title, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id='".$objVideoDetail->data->query_result[0]->v_franchise_id."' and v_season='".$objVideoDetail->data->query_result[0]->v_season."'",
 						null,'json');
 	$objEpisode=json_decode($json);
 	$json=$conn->doQuery("select distinct(v_id) v_id, v_franchise_id, v_title, v_url_youtube_id,v_url_cdn, v_prioritize_youtube, v_url_poster, v_url_poster_landscape from n_video v, n_franchise f where v.v_franchise_id=f.f_id and f_genre_id_1 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
@@ -242,8 +242,10 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 	$json=$conn->doQuery("select count(*) total from n_activity where av_video_id='".$videoId."'",
 						null,'json');
 	$objCount=json_decode($json);
-	$objEpisode=json_decode($json);
+	//$objEpisode=json_decode($json);
 	
+	$json=$conn->doQuery("SELECT av_last_second_watched from n_activity ac, n_session s where ac.av_video_id='".$videoId."' and ac.av_session_id=s.s_id and s.s_user_id='".$userid."' order by  av_id desc limit 1", null, 'json');
+	$objLastSecond=json_decode($json);
 	
 	//check eligible
 	if((int)$objVideoDetail->data->query_result[0]->v_price>0)
@@ -298,6 +300,7 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 	  "views"=>$objCount->data->query_result[0]->total,
 	  "favorite"=>$favorite,
 	  "eligible"=>$eligible,
+	  "av_last_second_watched"=>(int)$objLastSecond->data->query_result[0]->av_last_second_watched,
 	  "similiar_video"=>$objSimiliarVideo->data->query_result,
 	  "episode"=> $objEpisode->data->query_result
 	  );
@@ -323,7 +326,52 @@ function update_activity($conn, $av_id,$duration, $share, $resolution, $timeEnd)
 	$json=$conn->doQuery("update n_activity set av_duration=".$duration.", av_share=".$share.", av_resolution='".$resolution."', av_time_end='".$timeEnd."' where av_id=".$av_id,
 						null, 'json');
 }
-
+/*
+function get_comments($conn, $videoId, $start)
+{
+	global $return;
+	$json = $conn->doQuery("SELECT `cm_id`, `u_id`, `u_avatar_url`,`u_username`, `cm_replied_to_id`, `cm_video_id`, `cm_video_name`, `cm_session_id`, `cm_activity_id`, `cm_user_id`, `cm_title`, `cm_body`, `cm_likes`, `cm_dislikes`, `cm_is_active`, `cm_date_created`,(select count(*) from n_comment a where a.cm_replied_to_id=c.cm_id) cm_total   FROM `n_comment` c, `n_user` u WHERE c.`cm_video_id` = ".$videoId." and u.u_id=c.`cm_user_id` and c.cm_replied_to_id =''
+							order by cm_date_created desc LIMIT ".$start.",5; ", 
+										null,'json');
+										//echo $json;
+	$objComment = json_decode($json);
+	$data=array();
+	foreach($objComment->data->query_result as $row)
+	{
+		$json = $conn->doQuery("SELECT `cm_id`, `u_id`, `u_avatar_url`,`u_username`,  `cm_video_id`, `cm_video_name`, `cm_session_id`, `cm_activity_id`, `cm_user_id`, `cm_title`, `cm_body`, `cm_likes`, `cm_dislikes`, `cm_is_active`, `cm_date_created`, (select count(*) from n_comment a where a.cm_replied_to_id=c.cm_id) cm_total  FROM `n_comment` c, `n_user` u WHERE c.`cm_video_id` = ".$videoId." and u.u_id=c.`cm_user_id` and `cm_replied_to_id`='".$row->cm_id."'
+							order by cm_date_created", 
+										null,'json');
+												//echo $json;
+		$objComment = json_decode($json);
+		$data[]=array(
+					"parent"=>$row,
+					"child"=>$objComment->data->query_result
+					);
+	}
+	if(($start+1)<$count/10)
+	{
+		$nextPage=true;
+	}
+	else
+	{
+		$nextPage=false;
+	}
+	
+	$return["sta"] = "SUCCESS";
+	$return["ret"]["dat"] = encrypt(json_encode(array("nextPage"=>$nextPage,"data"=>$data)));;
+}
+/*
+function get_comments_replied($conn, $cm_id)
+{
+	global $return;
+	$json = $conn->doQuery("SELECT `cm_id`, `u_id`, `u_avatar_url`,`u_username`,  `cm_video_id`, `cm_video_name`, `cm_session_id`, `cm_activity_id`, `cm_user_id`, `cm_title`, `cm_body`, `cm_likes`, `cm_dislikes`, `cm_is_active`, `cm_date_created`, (select count(*) from n_comment a where a.cm_replied_to_id=c.cm_id) cm_total  FROM `n_comment` c, `n_user` u WHERE u.u_id=c.`cm_user_id` and `cm_replied_to_id`='".$cm_id."'
+							order by cm_date_created", 
+										null,'json');
+	$objComment = json_decode($json);
+	$return["sta"] = "SUCCESS";
+	$return["ret"]["dat"] = encrypt(json_encode($objComment->data->query_result));
+}
+*/
 function get_comments($conn, $videoId, $start)
 {
 	global $return;
@@ -842,5 +890,110 @@ function check_session($conn, $sessionid)
 	$json=$conn->doQuery("SELECT s_user_id from n_session where s_id=".$sessionid.";", null, 'json');
 	//echo $json;
 	return json_decode($json);
+}
+
+function add_tokens($conn, $uid, $type)
+{
+	global $return;
+	$addPoints=0;
+	if($type=='ppv')
+	{
+		$addPoints=3000;
+	}
+	$json=$conn->doQuery("select * from n_user where u_id=".$uid.";", null, 'json');
+	$objUser= json_decode($json);
+	//echo $json=
+	$points=$objUser->data->query_result[0]->u_points+$addPoints;
+	$json=$conn->doQuery("update n_user set u_points=".$points." where u_id=".$objUser->data->query_result[0]->u_id.";", null, 'json');	
+	if(json_decode($json)->data->result=='ok')
+	{
+		$json=$conn->doQuery("select u_points from n_user where u_id=".$uid.";", null, 'json');
+		$objUser= json_decode($json);
+		$return["sta"] = "SUCCESS";
+		$return["ret"]["dat"] = encrypt(json_encode($objUser->data->query_result[0]));
+	}
+	else
+	{
+		$return["sta"] = "FAIL";
+	}
+	
+}
+
+function get_ppv($conn, $uid)
+{
+	global $return;
+	$json=$conn->doQuery("select ppv_video_id from n_pay_per_view where ppv_user_id='".$uid."' and ppv_date_ended>NOW();", null, 'json');
+	//echo $json;
+	$objPpv=json_decode($json);
+	$data=array();
+	foreach($objPpv->data->query_result as $row)
+	{
+		$json=$conn->doQuery("select * from n_video where v_id=".$row->ppv_video_id.";", null, 'json');
+		$data[]=json_decode($json)->data->query_result;
+	}
+	$return["sta"] = "SUCCESS";
+	$return["ret"]["dat"] = encrypt(json_encode($data));
+}
+
+function add_playlist($conn, $uid, $videoid, $sid)
+{
+	global $return;
+	$json = $conn->doQuery("select * from n_video where v_id=".$videoid.";", 
+										null,'json');
+	$objVideo=json_decode($json);	
+	if($objVideo->data->query_result[0] =='' || $objVideo->data->query_result[0] ==null)
+	{
+		$return["sta"] = "FAIL";
+	}
+	else
+	{
+	
+		$json = $conn->doQuery("insert into n_action (`an_session_id`, `an_name`, `an_note`, `an_user_id`, `an_video_id`,`an_is_valid`) 
+						values ('".$sid."','cli_add_playlist','', '".$uid."', '".$videoid."', 0);", 
+										null,'json');
+		$return["sta"] = "SUCCESS";
+	}
+	
+}
+
+function get_playlist($conn, $uid)
+{
+	global $return;
+	$json=$conn->doQuery("select an_video_id from n_action where an_name='cli_add_playlist' and an_user_id='".$uid."';", null, 'json');
+	//echo $json;
+	$objPlaylist=json_decode($json);
+	$data=array();
+	foreach($objPlaylist->data->query_result as $row)
+	{
+		$json=$conn->doQuery("select * from n_video where v_id=".$row->an_video_id.";", null, 'json');
+		$data[]=json_decode($json)->data->query_result;
+	}
+	$return["sta"] = "SUCCESS";
+	$return["ret"]["dat"] = encrypt(json_encode($data));
+}
+
+function add_notification($conn, $uid, $type, $videoid, $commentid)
+{
+	global $return;
+	$json=$conn->doQuery("select v_franchise_id from n_video where v_id=".$videoid.";", null, 'json');
+	$objVideo=json_decode($json);
+	$json=$conn->doQuery("insert into n_notification (n_notification_message_title_id, n_notification_message_body_id, n_user_id, n_franchise_id, n_video_id, n_comment_id, n_is_read) 
+						   values (1,
+								   2,
+								   '".$uid."',
+								   '".$objVideo->data->query_result[0]->v_franchise_id."',
+								   '".$videoid."',
+								   '".$commentid."',
+								   0
+								   );", null, 'json');
+	//echo $json;
+	if(json_decode($json)->data->result=='ok')
+	{
+		$return["sta"] = "SUCCESS";
+	}
+	else
+	{
+		$return["sta"] = "FAILED";
+	}
 }
 ?>

@@ -242,6 +242,33 @@ function GetClientExtraAPI($jsonaction, $data)
 			break;
 		}
 		
+		case "cli_get_comments_by_replied":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->cm_id) )
+			{
+				$page=10*$captureddata->pg;
+				get_comments_replied($conn, $captureddata->cm_id);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			$param=array(
+						"an_session_id"=>$captureddata->sid,
+						"an_name"=>(string)$jsonaction,
+						"an_note"=>"",
+						"an_is_valid"=>0
+						);
+				insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
 		case "cli_add_comment":
 		{
 			$conn = new database();
@@ -544,6 +571,157 @@ function GetClientExtraAPI($jsonaction, $data)
 			echo json_encode($return);
 			break;
 		}
+		
+		case "cli_add_tokens":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->type))
+			{
+				
+				add_tokens($conn, $captureddata->uid, $captureddata->type);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			$param=array(
+					'sessionid'=>$captureddata->sid,
+					'an_name'=>(string)$jsonaction,
+					'an_note'=>'',
+					'an_is_valid'=>0);
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_get_ppv":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->uid))
+			{
+				
+				get_ppv($conn, $captureddata->uid);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			$param=array(
+					'sessionid'=>$captureddata->sid,
+					'an_name'=>(string)$jsonaction,
+					'an_note'=>'',
+					'an_is_valid'=>0);
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_add_playlist":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->videoid))
+			{
+				
+				add_playlist($conn, $captureddata->uid, $captureddata->videoid, $captureddata->sid);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_get_playlist":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->uid))
+			{
+				
+				get_playlist($conn, $captureddata->uid);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			$param=array(
+					'sessionid'=>$captureddata->sid,
+					'an_name'=>(string)$jsonaction,
+					'an_note'=>'',
+					'an_is_valid'=>0);
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_add_notification":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->type) && isset($captureddata->videoid) && isset($captureddata->commentid))
+			{
+				
+				add_notification($conn, $captureddata->uid, $captureddata->type, $captureddata->videoid, $captureddata->commentid );
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			$param=array(
+					'sessionid'=>$captureddata->sid,
+					'an_name'=>(string)$jsonaction,
+					'an_note'=>'',
+					'an_is_valid'=>0);
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_get_notification":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->uid))
+			{
+				
+				add_notification($conn, $captureddata->uid, $captureddata->type, $captureddata->videoid, $captureddata->commentid );
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			$param=array(
+					'sessionid'=>$captureddata->sid,
+					'an_name'=>(string)$jsonaction,
+					'an_note'=>'',
+					'an_is_valid'=>0);
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
 		default:
 		{
 			$return["evn"] = "unknown";
