@@ -75,7 +75,7 @@ function GetClientExtraAPI($jsonaction, $data)
 				
 				get_initial_content($conn, $captureddata->aps, $country_name, $rsSession->data->query_id);
 				$param=array(
-						"an_session_id"=>$rsSession->data->query_id,
+						"sessionid"=>$rsSession->data->query_id,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -171,7 +171,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -187,16 +187,24 @@ function GetClientExtraAPI($jsonaction, $data)
 			$return["evn"] = (string)$jsonaction;
 			//echo $data;
 			$captureddata = json_decode(decrypt($data));
-			if(isset($captureddata->sid) && isset($captureddata->activityId) && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->timeEnd))
+			if(isset($captureddata->sid) && isset($captureddata->activityId) && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->timeEnd) && isset($captureddata->uid))
 			{
-				$favorite=check_favorite($conn, $captureddata->sid, $captureddata->videoId);
+				if($captureddata->uid==null)
+				{
+					$favorite=false;
+				}
+				else
+				{
+					$favorite=check_favorite($conn, $captureddata->sid, $captureddata->videoId);
+				}
+				
 				$session=check_session($conn, $captureddata->sid);
 				//echo $session;
 				$activity=insert_activity($conn, $captureddata->sid,$captureddata->videoId );
 				if($captureddata->activityId!="")
 					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->nShares, $captureddata->resolution, $captureddata->timeEnd);
 				//echo $activity->data->query_id;
-				$data=get_video_detail($conn,  $captureddata->videoId, $favorite, $activity->data->query_id, $session->data->query_result[0]->s_user_id);
+				$data=get_video_detail($conn,  $captureddata->videoId, $favorite, $activity->data->query_id, $captureddata->uid);
 				
 			}
 			else
@@ -205,7 +213,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -232,7 +240,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -259,7 +267,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -279,7 +287,7 @@ function GetClientExtraAPI($jsonaction, $data)
 			{
 				//$page=10*$captureddata->pg;
 				insert_comment($conn, $captureddata->sid, $captureddata->commentId, $captureddata->userId, $captureddata->videoId, $captureddata->activityId, $captureddata->title, $captureddata->body);
-				$return["sta"] = "SUCCESS";
+				
 			}
 			else
 			{
@@ -287,7 +295,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -315,7 +323,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -342,7 +350,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -369,7 +377,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -396,7 +404,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -423,7 +431,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -450,7 +458,7 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
 			$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>"",
 						"an_is_valid"=>0
@@ -470,10 +478,12 @@ function GetClientExtraAPI($jsonaction, $data)
 				//$page=10*$captureddata->pg;
 				//set_action($conn, $captureddata->sid, $captureddata->userid, $captureddata->type);
 				$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
-						"an_note"=>$captureddata->userid.'-'.$captureddata->videoid,
-						"an_is_valid"=>0
+						"an_note"=>'',
+						"an_is_valid"=>0,
+						"an_video_id"=>$captureddata->videoid,
+						"an_user_id"=>$captureddata->userid
 						);
 				insert_action($conn, $param);
 				$return["sta"] = "SUCCESS";
@@ -497,7 +507,7 @@ function GetClientExtraAPI($jsonaction, $data)
 				//$page=10*$captureddata->pg;
 				//set_action($conn, $captureddata->sid, $captureddata->userid, $captureddata->type);
 				$param=array(
-						"an_session_id"=>$captureddata->sid,
+						"sessionid"=>$captureddata->sid,
 						"an_name"=>(string)$jsonaction,
 						"an_note"=>$captureddata->userid.'-'.$captureddata->videoid,
 						"an_is_valid"=>0
