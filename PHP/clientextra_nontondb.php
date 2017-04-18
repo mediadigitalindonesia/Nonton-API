@@ -195,7 +195,7 @@ function GetClientExtraAPI($jsonaction, $data)
 				}
 				else
 				{
-					$favorite=check_favorite($conn, $captureddata->sid, $captureddata->videoId);
+					$favorite=check_favorite($conn, $captureddata->uid, $captureddata->videoId);
 				}
 				
 				$session=check_session($conn, $captureddata->sid);
