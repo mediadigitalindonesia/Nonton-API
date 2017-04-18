@@ -123,9 +123,17 @@ function setup_action_param($conn, $session_id, $event_name, $extra_note, $curre
 					'an_name'=>$event_name,
 					'an_note'=>$extra_note,
 					'an_is_valid'=>1,
-					'an_user_id'=>$rsSession->s_user_id,
+					'an_user_id'=>$rsSession[0]->s_user_id,
 					'an_video_id'=>$current_video_id
 					);
+					
+	/*$conn->doQuery("insert into n_action (an_session_id, an_name, an_note, an_is_valid, an_user_id, an_video_id) values
+					'".$session_id."',
+					'".$event_name."',
+					'".$extra_note."'1, 
+					",
+					null,"json");*/
+	
 }
 
 function insert_action($conn, $param)
@@ -134,9 +142,10 @@ function insert_action($conn, $param)
 		$json = $conn->doQuery("insert into n_action (`an_session_id`, `an_name`, `an_note`, `an_is_valid`, `an_video_id`, `an_user_id`) values ('".$param['sessionid']."','".$param['an_name']."','".$param['an_note']."',".$param['an_is_valid'].", '".$param['an_video_id']."', '".$param['an_user_id']."');", 
 										null,'json');
 	else
-	$json = $conn->doQuery("insert into n_action (`an_session_id`, `an_name`, `an_note`, `an_is_valid`) values ('".$param['sessionid']."','".$param['an_name']."','".$param['an_note']."',".$param['an_is_valid'].");", 
+		$json = $conn->doQuery("insert into n_action (`an_session_id`, `an_name`, `an_note`, `an_is_valid`) values ('".$param['sessionid']."','".$param['an_name']."','".$param['an_note']."',".$param['an_is_valid'].");", 
 										null,'json');
 	//echo json_decode($json);
+	//echo $json;
 }
 
 function insert_session($conn, $param)
@@ -171,91 +180,102 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 {
 	global $return;
 	//echo $activityId;
-	$json=$conn->doQuery("select v_id, v_franchise_id,t_name, v_title, v_price, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id",
-						null,'json');
-	$objVideoDetail=json_decode($json);
-	$json=$conn->doQuery("select v_id, v_title, `v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`, v_franchise_id, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id='".$objVideoDetail->data->query_result[0]->v_franchise_id."' and v_season='".$objVideoDetail->data->query_result[0]->v_season."' and v_season!=-1",
-						null,'json');
-	$objEpisode=json_decode($json);
-	$json=$conn->doQuery("select distinct(v_id) v_id, v_franchise_id, v_title, v_url_youtube_id,v_url_cdn, v_prioritize_youtube, v_url_poster, v_url_poster_landscape from n_video v, n_franchise f where v.v_franchise_id=f.f_id and (f_genre_id_1 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
-							or f_genre_id_2 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
-							or f_genre_id_3 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
-							or f_genre_id_4 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
-							or f_genre_id_5 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") )
-							and v_id !=".$objVideoDetail->data->query_result[0]->v_id." and v_franchise_id!='".$objVideoDetail->data->query_result[0]->v_franchise_id."' group by v_franchise_id;",
-						null,'json');
-	//echo $json;			
-	$objSimiliarVideo=json_decode($json);
-	//echo $objSimiliarVideo;
-	$json=$conn->doQuery("select count(*) total from n_activity where av_video_id='".$videoId."'",
-						null,'json');
-	$objCount=json_decode($json);
-	//$objEpisode=json_decode($json);
-	
-	$json=$conn->doQuery("SELECT av_last_second_watched from n_activity ac, n_session s where ac.av_video_id='".$videoId."' and ac.av_session_id=s.s_id and s.s_user_id='".$userid."' order by  av_id desc limit 1", null, 'json');
-	$objLastSecond=json_decode($json);
-	
-	//check eligible
-	if((int)$objVideoDetail->data->query_result[0]->v_price>0)
+	if($videoId==null || $videoId==-1)
 	{
-		$json=$conn->doQuery("select u_subscription_end  from n_user where u_id=".$userid,
-							null,'json');
-		$subsDate=strtotime(json_decode($json)->data->query_result[0]->u_subscription_end);
-		//echo $json;
-			if($subsDate<time())
-			{
-				//echo $subsDate;
-				$json=$conn->doQuery("select ppv_date_ended  from n_pay_per_view where ppv_user_id='".$userid."' and ppv_video_id='".$videoId."'",
-							null,'json');
-				$payDate=strtotime(json_decode($json)->data->query_result[0]->ppv_date_ended);
-				//echo $payDate;
-				if($payDate<time())
-				{
-					
-					$eligible=false;
-				}	
-				else
-				{
-					//echo 'true';
-					$eligible=true;
-				}
-					
-			}
-			else
-				$eligible=true;
+		
 	}
 	else
 	{
-		$eligible=true;
-		
+			$json=$conn->doQuery("select v_id, v_franchise_id,t_name, v_title, v_price, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id",
+								null,'json');
+			$objVideoDetail=json_decode($json);
+			$json=$conn->doQuery("select v_id, v_title, `v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`, v_franchise_id, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id='".$objVideoDetail->data->query_result[0]->v_franchise_id."' and v_season='".$objVideoDetail->data->query_result[0]->v_season."' and v_season!=-1",
+								null,'json');
+			$objEpisode=json_decode($json);
+			$json=$conn->doQuery("select distinct(v_id) v_id, v_franchise_id, v_title, v_url_youtube_id,v_url_cdn, v_prioritize_youtube, v_url_poster, v_url_poster_landscape from n_video v, n_franchise f where v.v_franchise_id=f.f_id and (f_genre_id_1 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
+									or f_genre_id_2 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
+									or f_genre_id_3 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
+									or f_genre_id_4 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
+									or f_genre_id_5 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") )
+									and v_id !=".$objVideoDetail->data->query_result[0]->v_id." and v_franchise_id!='".$objVideoDetail->data->query_result[0]->v_franchise_id."' group by v_franchise_id;",
+								null,'json');
+			//echo $json;			
+			$objSimiliarVideo=json_decode($json);
+			//echo $objSimiliarVideo;
+			$json=$conn->doQuery("select count(*) total from n_activity where av_video_id='".$videoId."'",
+								null,'json');
+			$objCount=json_decode($json);
+			//$objEpisode=json_decode($json);
+			
+			$json=$conn->doQuery("SELECT av_last_second_watched from n_activity ac, n_session s where ac.av_video_id='".$videoId."' and ac.av_session_id=s.s_id and s.s_user_id='".$userid."' order by  av_id desc limit 1", null, 'json');
+			$objLastSecond=json_decode($json);
+			
+			//check eligible
+			if((int)$objVideoDetail->data->query_result[0]->v_price>0)
+			{
+				$json=$conn->doQuery("select u_subscription_end  from n_user where u_id=".$userid,
+									null,'json');
+				$subsDate=strtotime(json_decode($json)->data->query_result[0]->u_subscription_end);
+				//echo $json;
+					if($subsDate<time())
+					{
+						//echo $subsDate;
+						$json=$conn->doQuery("select ppv_date_ended  from n_pay_per_view where ppv_user_id='".$userid."' and ppv_video_id='".$videoId."'",
+									null,'json');
+						$payDate=strtotime(json_decode($json)->data->query_result[0]->ppv_date_ended);
+						//echo $payDate;
+						if($payDate<time())
+						{
+							
+							$eligible=false;
+						}	
+						else
+						{
+							//echo 'true';
+							$eligible=true;
+						}
+							
+					}
+					else
+						$eligible=true;
+			}
+			else
+			{
+				$eligible=true;
+				
+			}
+			if($objVideoDetail->data->query_result[0]->v_url_cdn==null)
+				$v_url_cdn='';
+			else
+				$v_url_cdn=$objVideoDetail->data->query_result[0]->v_url_cdn;
+				
+			$data=array(
+			  "v_id" => $objVideoDetail->data->query_result[0]->v_id,
+			  "category"=>  $objVideoDetail->data->query_result[0]->t_name,
+			  "v_franchise_id"=> $objVideoDetail->data->query_result[0]->v_franchise_id,
+			  "v_title"=>$objVideoDetail->data->query_result[0]->v_title,
+			  "f_company"=>$objVideoDetail->data->query_result[0]->f_company,
+			  "v_synopsis"=> $objVideoDetail->data->query_result[0]->v_synopsis,
+			  "v_url_youtube_id"=> $objVideoDetail->data->query_result[0]->v_url_youtube_id,
+			  "v_season"=> $objVideoDetail->data->query_result[0]->v_season,
+			  "v_episode"=> $objVideoDetail->data->query_result[0]->v_episode,
+			  "v_year_production"=> $objVideoDetail->data->query_result[0]->v_year_production,
+			  "v_director"=> $objVideoDetail->data->query_result[0]->v_director,
+			  "v_casts"=> $objVideoDetail->data->query_result[0]->v_casts,
+			  "v_price"=> $objVideoDetail->data->query_result[0]->v_price,
+			  "v_url_cdn"=> $v_url_cdn,
+			  "views"=>$objCount->data->query_result[0]->total,
+			  "favorite"=>$favorite,
+			  "eligible"=>$eligible,
+			  "av_last_second_watched"=>(int)$objLastSecond->data->query_result[0]->av_last_second_watched,
+			  "similiar_video"=>$objSimiliarVideo->data->query_result,
+			  "episode"=> $objEpisode->data->query_result
+			  );
 	}
-		
-	$data=array(
-	  "v_id" => $objVideoDetail->data->query_result[0]->v_id,
-	  "category"=>  $objVideoDetail->data->query_result[0]->t_name,
-      "v_franchise_id"=> $objVideoDetail->data->query_result[0]->v_franchise_id,
-	  "v_title"=>$objVideoDetail->data->query_result[0]->v_title,
-	  "f_company"=>$objVideoDetail->data->query_result[0]->f_company,
-      "v_synopsis"=> $objVideoDetail->data->query_result[0]->v_synopsis,
-      "v_url_youtube_id"=> $objVideoDetail->data->query_result[0]->v_url_youtube_id,
-      "v_season"=> $objVideoDetail->data->query_result[0]->v_season,
-      "v_episode"=> $objVideoDetail->data->query_result[0]->v_episode,
-      "v_year_production"=> $objVideoDetail->data->query_result[0]->v_year_production,
-      "v_director"=> $objVideoDetail->data->query_result[0]->v_director,
-      "v_casts"=> $objVideoDetail->data->query_result[0]->v_casts,
-      "v_price"=> $objVideoDetail->data->query_result[0]->v_price,
-	  "v_url_cdn"=> $objVideoDetail->data->query_result[0]->v_url_cdn,
-	  "views"=>$objCount->data->query_result[0]->total,
-	  "favorite"=>$favorite,
-	  "eligible"=>$eligible,
-	  "av_last_second_watched"=>(int)$objLastSecond->data->query_result[0]->av_last_second_watched,
-	  "similiar_video"=>$objSimiliarVideo->data->query_result,
-	  "episode"=> $objEpisode->data->query_result
-	  );
-	//array_push($objVideoDetail->data->query_result, $objEpisode->data->query_result);
-	$return["sta"] = "SUCCESS";
-	$return["ret"]["dat"] = encrypt(json_encode(array("activityId"=>$activityId,"video"=>$data)));;
-	return $data;
+			//array_push($objVideoDetail->data->query_result, $objEpisode->data->query_result);
+			$return["sta"] = "SUCCESS";
+			$return["ret"]["dat"] = encrypt(json_encode(array("activityId"=>$activityId,"video"=>$data)));;
+			return $data;
 	
 }
 
@@ -401,16 +421,29 @@ function create_user($conn, $facebookid=null, $deviceid=null,$referalid=null, $e
 		}		
 
 		$json = $conn->doQuery("insert into n_user (U_fbid, U_device_id, U_username, U_password, U_fullname,U_gender,U_birthday, U_points, u_avatar_url, u_email) 
-								values ('".facebookid."','".$deviceid."','".$username."','".$password."','".fullname."','".$gender."','".$birthday."', '".$new_user_points."', '".$photourl."', '".$email."');", 
+								values ('".$facebookid."','".$deviceid."','".$username."','".md5($password)."','".$fullname."','".$gender."','".$birthday."', '".$new_user_points."', '".$photourl."', '".$email."');", 
 											null,'json');
-		
 		$insert=json_decode($json);
-		$json = $conn->doQuery("SELECT `u_id`, `u_points` points, u_fullname, u_avatar_url, u_subscription_end FROM `n_user` u WHERE `u_id` = ".$insert->data->query_id.";", null,'json');
+		//echo $json;
+		//echo $insert->data->result;
+		if($insert->data->result !='ok')
+		{
+			
+			$return["sta"] = "FAILED";
+			$return["ret"]["msg"] = $insert->data->error_message;
+			//break;
+			
+		}
+		else
+		{
+			$json = $conn->doQuery("SELECT * FROM `n_user` u WHERE `u_id` = ".$insert->data->query_id.";", null,'json');
 		$objUser = json_decode($json);
 		$data=$objUser->data->query_result[0];
 	
 		$return["sta"] = "SUCCESS";
 		$return["ret"]["dat"] = encrypt(json_encode($data));
+		}
+		
 	}
 }
 
@@ -419,13 +452,13 @@ function load_user($conn, $email, $password, $facebookid, $sid)
 	global $return;
 	if($email == '')
 	{
-		$json = $conn->doQuery("SELECT `u_id`, `u_points`, u_fullname, u_avatar_url, u_email, u_subscription_end FROM `n_user` u WHERE `u_fbid` = '".$facebookid."';", 
+		$json = $conn->doQuery("SELECT u_points, u_username, u_gender, u_avatar_url, u_birthday, u_phone, u_subscription_end, u_total_referred_since_last_login FROM `n_user` u WHERE `u_fbid` = '".$facebookid."';", 
 										null,'json');
 		$objUser = json_decode($json);
 	}
 	else
 	{
-		$json = $conn->doQuery("SELECT `u_id`, `u_points`, u_fullname, u_avatar_url, u_email, u_subscription_end FROM `n_user` u WHERE `u_email` = '".$email."' and u_password='".$password."';", 
+		$json = $conn->doQuery("SELECT u_points, u_username, u_gender, u_avatar_url, u_birthday, u_phone, u_subscription_end, u_total_referred_since_last_login FROM `n_user` u WHERE `u_email` = '".$email."' and u_password='".$password."';", 
 										null,'json');
 		$objUser = json_decode($json);
 	}
@@ -863,11 +896,11 @@ function add_playlist($conn, $uid, $videoid, $sid)
 	}
 	else
 	{
-		$jsonPlaylist=$conn->doQuery("select pl_video_id from n_playlist where pl_is_valid=1 and pl_user_id='".$uid."' and pl_video_id='".$videoid."';", null, 'json');
+		$jsonPlaylist=$conn->doQuery("select pl_video_id from n_playlist where pl_is_active=1 and pl_user_id='".$uid."' and pl_video_id='".$videoid."';", null, 'json');
 		$objPlaylist=json_decode($jsonPlaylist);
 		if(!empty($objPlaylist->data->query_result))
 		{
-			$json=$conn->doQuery("update n_playlist set pl_is_valid=0 where pl_user_id=".$uid." and pl_video_id=".$videoid, null, 'json');
+			$json=$conn->doQuery("update n_playlist set pl_is_active=0 where pl_user_id='".$uid."' and pl_video_id='".$videoid."'", null, 'json');
 		}
 		else
 		{

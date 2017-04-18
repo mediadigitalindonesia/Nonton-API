@@ -61,9 +61,22 @@ function GetClientExtraAPI($jsonaction, $data)
 			$clientId = "";
 			$clientName = "";
 
-			// TODO : Get user name here
 			$loggedUserName = "";
 			$loggedUserFbid = "";
+			
+			$clientName = $captureddata->aps;
+			$clientId = "";
+			if( isset($clientName) )
+			{
+				$jsonClient = $conn->doQuery("Select `cl_id` from  n_client where cl_name='".$clientName."';", null,'json');
+				$objClient = json_decode($jsonClient);
+				
+				if(!empty($objClient->data->query_result))
+				{
+					$clientId = $objClient->data->query_result[0]->cl_id;
+				}
+			}
+			
 			if( isset($captureddata->uid) )
 			{
 				$jsonUser = $conn->doQuery("Select `u_fullname`,`u_fbid` from  n_user where u_id=".$captureddata->uid.";", null,'json');
@@ -165,7 +178,7 @@ function GetClientExtraAPI($jsonaction, $data)
 			$return["evn"] = (string)$jsonaction;
 			//echo $data;
 			$captureddata = json_decode(decrypt($data));
-			if(isset($captureddata->sid) && isset($captureddata->activityId) && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->timeEnd) && isset($captureddata->uid))
+			if(isset($captureddata->sid) && isset($captureddata->activityId) /*&& ($captureddata->activityId>0)*/ && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->uid) && isset($captureddata->uid))
 			{
 				if($captureddata->uid==null)
 				{
@@ -177,9 +190,10 @@ function GetClientExtraAPI($jsonaction, $data)
 				}
 				
 				$session=check_session($conn, $captureddata->sid);
-				$activity=insert_activity($conn, $captureddata->sid, $captureddata->videoId );
-				if($captureddata->activityId!="")
-					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->lastSecond, $captureddata->nShares, $captureddata->resolution, $captureddata->timeEnd);
+				if($captureddata->videoId!=-1)
+					$activity=insert_activity($conn, $captureddata->sid, $captureddata->videoId );
+				if($captureddata->activityId!="" || $captureddata->activityId!=-1)
+					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->lastSecond, $captureddata->nShares, $captureddata->resolution, $conn->getDateTimeNow());
 				
 				$data=get_video_detail($conn,  $captureddata->videoId, $favorite, $activity->data->query_id, $captureddata->uid);
 			}
@@ -297,7 +311,7 @@ function GetClientExtraAPI($jsonaction, $data)
 				create_user($conn, $captureddata->facebookid, $captureddata->deviceid,$captureddata->referalid, $captureddata->email,$captureddata->fullname, $captureddata->username, $captureddata->gender, $captureddata->birthday,$captureddata->sessionid, $captureddata->password, $captureddata->photourl);
 
 				// TODO : insert this user id, fb id and name to current session id
-				$jsonUser = $conn->doQuery("Select `u_id` from  n_user where u_email=".$captureddata->email.";", null,'json');
+				$jsonUser = $conn->doQuery("Select `u_id` from  n_user where u_email='".$captureddata->email."';", null,'json');
 				$objUser = json_decode($jsonUser);
 
 				$currentUserId = "";
@@ -306,7 +320,8 @@ function GetClientExtraAPI($jsonaction, $data)
 					$currentUserId = $objUser->data->query_result[0]->u_id;
 				}
 				
-				$json=$conn->doQuery("update n_session set s_user_id=".$currentUserId.", s_fb_id=".$captureddata->facebookid.", s_name=".$captureddata->fullname." where s_id=".$captureddata->sid, null, 'json');
+				$json=$conn->doQuery("update n_session set s_user_id='".$currentUserId."', s_fb_id='".$captureddata->facebookid."', s_name='".$captureddata->fullname."' where s_id=".$captureddata->sid, null, 'json');
+				//echo $json;
 			}
 			else
 			{
@@ -332,7 +347,7 @@ function GetClientExtraAPI($jsonaction, $data)
 				load_user($conn, $captureddata->email, $captureddata->password,$captureddata->facebookid, $captureddata->sid);
 
 				// TODO : insert this user id, fb id and name to current session id
-				$jsonUser = $conn->doQuery("Select `u_id`, `u_fbid`, `u_fullname` from  n_user where u_email=".$captureddata->email." or u_fbid=".$captureddata->facebookid.";", null,'json');
+				$jsonUser = $conn->doQuery("Select `u_id`, `u_fbid`, `u_fullname` from  n_user where u_email='".$captureddata->email."' or u_fbid='".$captureddata->facebookid."';", null,'json');
 				$objUser = json_decode($jsonUser);
 
 				$currentUserId = "";
@@ -345,7 +360,8 @@ function GetClientExtraAPI($jsonaction, $data)
 					$currentUserName = $objUser->data->query_result[0]->u_fullname;
 				}
 				
-				$json=$conn->doQuery("update n_session set s_user_id=".$currentUserId.", s_fb_id=".$currentFacebookId.", s_name=".$currentUserName." where s_id=".$captureddata->sid, null, 'json');
+				$json=$conn->doQuery("update n_session set s_user_id='".$currentUserId."', s_fb_id='".$currentFacebookId."', s_name='".$currentUserName."' where s_id=".$captureddata->sid, null, 'json');
+				//echo $json;
 			}
 			else
 			{
@@ -496,7 +512,7 @@ function GetClientExtraAPI($jsonaction, $data)
 			$return["evn"] = (string)$jsonaction;
 			//echo $data;
 			$captureddata = json_decode(decrypt($data));
-			if(isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->type))
+			if(isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->type) )
 			{
 				add_tokens($conn, $captureddata->uid, $captureddata->type);
 			}
@@ -616,6 +632,30 @@ function GetClientExtraAPI($jsonaction, $data)
 					$return["sta"] = "FAIL";
 					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
+			$param=setup_action_param($conn, $captureddata->sid, (string)$jsonaction, "", "");
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_add_tokens_and_purchase_video":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->type) && isset($captureddata->videoid) )
+			{
+				add_tokens($conn, $captureddata->uid, $captureddata->type);
+
+				purchase_video($conn, $captureddata->sid, $captureddata->uid, $captureddata->videoid, 1);
+			}
+			else
+			{
+				$return["sta"] = "FAIL";
+				$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			
 			$param=setup_action_param($conn, $captureddata->sid, (string)$jsonaction, "", "");
 			insert_action($conn, $param);
 			echo json_encode($return);
