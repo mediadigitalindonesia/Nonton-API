@@ -58,8 +58,19 @@ function GetClientExtraAPI($jsonaction, $data)
 			$rsCountry= getCountryByName($conn, $country_name);
 
 			// TODO : Get signature name and get the id
+			$clientName = $captureddata->aps;
 			$clientId = "";
 			$clientName = "";
+			if( isset($clientName) )
+			{
+				$jsonClient = $conn->doQuery("Select `cl_id` from  n_client where cl_name=".$clientName.";", null,'json');
+				$objClient = json_decode($jsonClient);
+				
+				if(!empty($objClient->data->query_result))
+				{
+					$clientId = $objClient->data->query_result[0]->cl_id;
+				}
+			}
 
 			$loggedUserName = "";
 			$loggedUserFbid = "";
@@ -178,7 +189,11 @@ function GetClientExtraAPI($jsonaction, $data)
 			$return["evn"] = (string)$jsonaction;
 			//echo $data;
 			$captureddata = json_decode(decrypt($data));
+<<<<<<< Updated upstream
 			if(isset($captureddata->sid) && isset($captureddata->activityId) /*&& ($captureddata->activityId>0)*/ && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->uid) && isset($captureddata->uid))
+=======
+			if(isset($captureddata->sid) && isset($captureddata->activityId) && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->uid))
+>>>>>>> Stashed changes
 			{
 				if($captureddata->uid==null)
 				{
@@ -190,10 +205,16 @@ function GetClientExtraAPI($jsonaction, $data)
 				}
 				
 				$session=check_session($conn, $captureddata->sid);
+<<<<<<< Updated upstream
 				if($captureddata->videoId!=-1)
 					$activity=insert_activity($conn, $captureddata->sid, $captureddata->videoId );
 				if($captureddata->activityId!="" || $captureddata->activityId!=-1)
 					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->lastSecond, $captureddata->nShares, $captureddata->resolution, $conn->getDateTimeNow());
+=======
+				$activity=insert_activity($conn, $captureddata->sid, $captureddata->videoId );
+				if($captureddata->activityId!="")
+					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->lastSecond, $captureddata->nShares, $captureddata->resolution, getDateTimeNow());
+>>>>>>> Stashed changes
 				
 				$data=get_video_detail($conn,  $captureddata->videoId, $favorite, $activity->data->query_id, $captureddata->uid);
 			}
@@ -521,6 +542,30 @@ function GetClientExtraAPI($jsonaction, $data)
 				$return["sta"] = "FAIL";
 				$return["ret"]["msg"] = "INVALID EVENT FORMAT";
 			}
+			$param=setup_action_param($conn, $captureddata->sid, (string)$jsonaction, "", "");
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_add_tokens_and_purchase_video":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+			if(isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->type) && isset($captureddata->videoid) && isset($captureddata->usetoken) )
+			{
+				add_tokens($conn, $captureddata->uid, $captureddata->type);
+
+				purchase_video($conn, $captureddata->sid, $captureddata->uid, $captureddata->videoid, $captureddata->usetoken);
+			}
+			else
+			{
+				$return["sta"] = "FAIL";
+				$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			
 			$param=setup_action_param($conn, $captureddata->sid, (string)$jsonaction, "", "");
 			insert_action($conn, $param);
 			echo json_encode($return);

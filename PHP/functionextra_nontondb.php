@@ -188,11 +188,17 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 	{
 			$json=$conn->doQuery("select v_id, v_franchise_id,t_name, v_title, v_price, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id",
 								null,'json');
+			$json=$conn->doQuery("select v_id, v_franchise_id,t_name, v_title, v_price, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price, f_type_id from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id", null,'json');
 			$objVideoDetail=json_decode($json);
 			$json=$conn->doQuery("select v_id, v_title, `v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`, v_franchise_id, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id='".$objVideoDetail->data->query_result[0]->v_franchise_id."' and v_season='".$objVideoDetail->data->query_result[0]->v_season."' and v_season!=-1",
 								null,'json');
+			$video_type = $objVideoDetail->data->query_result[0]->f_type_id;
+
+			$json=$conn->doQuery("select v_id, v_title, `v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`, v_franchise_id, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id='".$objVideoDetail->data->query_result[0]->v_franchise_id."' and v_season='".$objVideoDetail->data->query_result[0]->v_season."' and v_season!=-1", null,'json');
 			$objEpisode=json_decode($json);
 			$json=$conn->doQuery("select distinct(v_id) v_id, v_franchise_id, v_title, v_url_youtube_id,v_url_cdn, v_prioritize_youtube, v_url_poster, v_url_poster_landscape from n_video v, n_franchise f where v.v_franchise_id=f.f_id and (f_genre_id_1 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
+
+			$json=$conn->doQuery("select distinct(v_id) v_id, v_franchise_id, v_title, v_url_youtube_id,v_url_cdn, v_prioritize_youtube, v_url_poster, v_url_poster_landscape from n_video v, n_franchise f where v.v_franchise_id=f.f_id and f.f_type_id =".$video_type." and (f_genre_id_1 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
 									or f_genre_id_2 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
 									or f_genre_id_3 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
 									or f_genre_id_4 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
@@ -200,8 +206,11 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 									and v_id !=".$objVideoDetail->data->query_result[0]->v_id." and v_franchise_id!='".$objVideoDetail->data->query_result[0]->v_franchise_id."' group by v_franchise_id;",
 								null,'json');
 			//echo $json;			
+									and v_id !=".$objVideoDetail->data->query_result[0]->v_id." and v_franchise_id!='".$objVideoDetail->data->query_result[0]->v_franchise_id."' group by v_franchise_id;", null,'json');
+			
 			$objSimiliarVideo=json_decode($json);
 			//echo $objSimiliarVideo;
+			
 			$json=$conn->doQuery("select count(*) total from n_activity where av_video_id='".$videoId."'",
 								null,'json');
 			$objCount=json_decode($json);
@@ -635,6 +644,8 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 
 	$banner=null;
 	$dataTotal=null;
+	//$banner=null;
+	//$dataTotal=null;
 	$dataCat=array();
 	$lastFid=array();
 
@@ -715,6 +726,9 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 	if( $isEpisodic == 0 )
 	{
 		// if it's not episodic, then categorize the videos by its genre
+		
+		/*
+		// uncomment this when doing by genre
 		$json = $conn->doQuery("SELECT g_id, g_name, g_banner_url from n_genre group by g_id LIMIT ".$page_number.",".$limit_entry_per_page.";", null,'json');
 
 		$objGenre = json_decode($json);
@@ -723,15 +737,59 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 		$totalGenre=$objCount->data->query_result[0]->total;
 
 		foreach( $objGenre->data->query_result as $row )
+		GetNonEpisodicVideosByGenre($conn, $objGenre, $maxNumberOfRowsToBeViewed, $totalItemPerRow, $dataCat, $category, $country_name, "usa");
+		*/
+		GetNonEpisodicVideosByCountry($conn, $objGenre, $maxNumberOfRowsToBeViewed, $totalItemPerRow, $dataCat, $category, $country_name, "LIKE", 1, $page_number, $limit_entry_per_page);
+		GetNonEpisodicVideosByCountry($conn, $objGenre, $maxNumberOfRowsToBeViewed, $totalItemPerRow, $dataCat, $category, $country_name, "NOT LIKE", 2, $page_number, $limit_entry_per_page);
+	}
+			
+	$videoList=array("next_id"=>$page_number+$limit_entry_per_page, "data"=>$dataCat);
+	$return["sta"] = "SUCCESS";
+	$return["ret"]["dat"] = encrypt(json_encode($videoList));
+}
+
+function GetNonEpisodicVideosByCountry($conn, $objGenre, $maxNumberOfRowsToBeViewed, $totalItemPerRow, &$dataCat, $category, $country_name, $is_indonesia, $genreId, $page_number, $limit_entry_per_page)
+{
+	$country_origin = "indonesia";
+	$maxNumberOfRowsToBeViewed = $maxNumberOfRowsToBeViewed + 1;
+
+	// check how many videos we have that has this specific genre
+	$json = $conn->doQuery("SELECT count(*) total FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND  (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access)LIKE '%ALL%') AND UPPER(f_country) ".$is_indonesia." '%".strtoupper($country_origin)."%' AND t.t_id =f.f_type_id AND t.t_id=".$category." and v.v_franchise_id=f.f_id ORDER BY v_last_updated DESC LIMIT ".$page_number.",".$limit_entry_per_page.";", null,'json');
+	$objCount=json_decode($json);
+	$videoCount=$objCount->data->query_result[0]->total;
+	$data="";
+
+	$requestedTotalVideoToReturn = ($maxNumberOfRowsToBeViewed * $totalItemPerRow) + 1;
+	// if the latest season is not 1, the total video returned is as defined above
+	if( $videoCount >= $requestedTotalVideoToReturn) 
+	{
+		//$totalVideoToReturn doesn't change
+	}
+	else 
+	{
+		$tempTotalVideoToReturn = ((int)((int)$videoCount / (int)$totalItemPerRow) * $totalItemPerRow) + 1;
+
+		if( ($videoCount - 1) % $totalItemPerRow == ($totalItemPerRow + 1) )
 		{
 			$genreId = $row->g_id;
 			$genreName = $row->g_name;
+			$tempTotalVideoToReturn = $requestedTotalVideoToReturn - 1;
+		}
 
 			// check how many videos we have that has this specific genre
 			$json = $conn->doQuery("SELECT count(*) total FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND f_genre_id_1='".$genreId."' AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') AND t.t_id =f.f_type_id AND t.t_id=".$category." and v.v_franchise_id=f.f_id ORDER BY v_last_updated DESC;", null,'json');
 			$objCount=json_decode($json);
 			$videoCount=$objCount->data->query_result[0]->total;
 			$data="";
+		if( (int)($videoCount / $totalItemPerRow) == 0 )
+		{
+			$requestedTotalVideoToReturn = $videoCount;
+		}
+		else
+		{
+			$requestedTotalVideoToReturn = $tempTotalVideoToReturn;
+		}
+	}
 
 			$requestedTotalVideoToReturn = ($maxNumberOfRowsToBeViewed * $totalItemPerRow) + 1;
 			// if the latest season is not 1, the total video returned is as defined above
@@ -742,11 +800,32 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 			else 
 			{
 				$tempTotalVideoToReturn = ((int)((int)$videoCount / (int)$totalItemPerRow) * $totalItemPerRow) + 1;
+	if( $requestedTotalVideoToReturn <= 1 )
+	{
+		continue;
+	}
 
 				if( ($videoCount - 1) % $totalItemPerRow == ($totalItemPerRow + 1) )
 				{
 					$tempTotalVideoToReturn = $requestedTotalVideoToReturn - 1;
 				}
+	// get the list of video
+	$jsonVideo = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,
+							CASE WHEN v_url_poster = ''
+								THEN 'http://new.nonton.com/comm/images/posters/222_potrait.jpg'
+								ELSE v_url_poster
+							END AS v_url_poster,
+						 `v_url_poster_landscape`,`f_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access)LIKE '%ALL%') AND UPPER(f_country) ".$is_indonesia." '%".strtoupper($country_origin)."%' AND t.t_id =f.f_type_id AND t.t_id=".$category." and v.v_franchise_id=f.f_id group by v_id ORDER BY v_episode ASC LIMIT ".$requestedTotalVideoToReturn.";", null,'json');
+	
+	$objVideo = json_decode($jsonVideo);
+	$data=array();
+	$firstEntryLandscapePosterUrl = "";
+	$currentIterator=0;
+	foreach($objVideo->data->query_result as $rows)
+	{
+		if($currentIterator==0)
+		{
+			$firstEntryLandscapePosterUrl = $rows->f_url_poster_landscape;
 
 				if( (int)($videoCount / $totalItemPerRow) == 0 )
 				{
@@ -756,12 +835,85 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 				{
 					$requestedTotalVideoToReturn = $tempTotalVideoToReturn;
 				}
+			$data[]=array( 
+							"v_franchise_id"=> $rows->v_franchise_id,
+							"v_id"=> $rows->v_id,
+							"v_title"=> $rows->v_title,
+							"v_url_youtube_id"=> $rows->v_url_youtube_id,
+							"v_url_cdn"=> $rows->v_url_youtube_id,
+							"v_prioritize_youtube"=> $rows->v_prioritize_youtube,
+							"v_url_poster"=> $rows->v_url_poster,
+							"v_url_poster_landscape"=> $firstEntryLandscapePosterUrl
+						  );
+		}
+		else
+		{
+			$data[]=array(
+							"v_franchise_id"=> $rows->v_franchise_id,
+							"v_id"=> $rows->v_id,
+							"v_title"=> $rows->v_title,
+							"v_url_youtube_id"=> $rows->v_url_youtube_id,
+							"v_url_cdn"=> $rows->v_url_youtube_id,
+							"v_prioritize_youtube"=> $rows->v_prioritize_youtube,
+							"v_url_poster"=> $rows->v_url_poster,
+							"v_url_poster_landscape"=> ''
+						  );
+		}
+
+		$currentIterator++;												  
+	}
+	
+	if($requestedTotalVideoToReturn>=1)
+	{
+		$dataCat[]=array(
+				"f_id"=> $genreId,
+				//"f_url_poster_landscape"=> $row->g_banner_url,
+				"f_url_poster_landscape"=> $firstEntryLandscapePosterUrl,
+				"t_name"=>$country_origin,
+				"data_vid"=>$data);
+	}
+}
+
+function GetNonEpisodicVideosByGenre($conn, $objGenre, $maxNumberOfRowsToBeViewed, $totalItemPerRow, &$dataCat, $category, $country_name, $country_origin)
+{
+	// return based on genre
+	foreach( $objGenre->data->query_result as $row )
+	{
+		$genreId = $row->g_id;
+		$genreName = $row->g_name;
+
+		// check how many videos we have that has this specific genre
+		$json = $conn->doQuery("SELECT count(*) total FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND f_genre_id_1='".$genreId."' AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access)LIKE '%ALL%') AND UPPER(f_country) LIKE '%".strtoupper($country_origin)."%' AND t.t_id =f.f_type_id AND t.t_id=".$category." and v.v_franchise_id=f.f_id ORDER BY v_last_updated DESC;", null,'json');
+		$objCount=json_decode($json);
+		$videoCount=$objCount->data->query_result[0]->total;
+		$data="";
+
+		$requestedTotalVideoToReturn = ($maxNumberOfRowsToBeViewed * $totalItemPerRow) + 1;
+		// if the latest season is not 1, the total video returned is as defined above
+		if( $videoCount >= $requestedTotalVideoToReturn) 
+		{
+			//$totalVideoToReturn doesn't change
+		}
+		else 
+		{
+			$tempTotalVideoToReturn = ((int)((int)$videoCount / (int)$totalItemPerRow) * $totalItemPerRow) + 1;
+
+			if( ($videoCount - 1) % $totalItemPerRow == ($totalItemPerRow + 1) )
+			{
+				$tempTotalVideoToReturn = $requestedTotalVideoToReturn - 1;
 			}
 
 			if( $requestedTotalVideoToReturn <= 1 )
+			if( (int)($videoCount / $totalItemPerRow) == 0 )
 			{
 				continue;
+				$requestedTotalVideoToReturn = $videoCount;
 			}
+			else
+			{
+				$requestedTotalVideoToReturn = $tempTotalVideoToReturn;
+			}
+		}
 
 			// get the list of video
 			$jsonVideo = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,
@@ -776,6 +928,26 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 			$firstEntryLandscapePosterUrl = "";
 			$currentIterator=0;
 			foreach($objVideo->data->query_result as $rows)
+		if( $requestedTotalVideoToReturn <= 1 )
+		{
+			continue;
+		}
+
+		// get the list of video
+		$jsonVideo = $conn->doQuery("SELECT `v_franchise_id`,`v_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,
+								CASE WHEN v_url_poster = ''
+									THEN 'http://new.nonton.com/comm/images/posters/222_potrait.jpg'
+									ELSE v_url_poster
+								END AS v_url_poster,
+							 `v_url_poster_landscape`,`f_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND f_genre_id_1=".$genreId." AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access)LIKE '%ALL%') AND UPPER(f_country) LIKE '%".strtoupper($country_origin)."%' AND t.t_id =f.f_type_id AND t.t_id=".$category." and v.v_franchise_id=f.f_id group by v_id ORDER BY v_episode ASC LIMIT ".$requestedTotalVideoToReturn.";", null,'json');
+		
+		$objVideo = json_decode($jsonVideo);
+		$data=array();
+		$firstEntryLandscapePosterUrl = "";
+		$currentIterator=0;
+		foreach($objVideo->data->query_result as $rows)
+		{
+			if($currentIterator==0)
 			{
 				if($currentIterator==0)
 				{
@@ -805,11 +977,23 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 									"v_url_poster_landscape"=> ''
 								  );
 				}
+				$firstEntryLandscapePosterUrl = $rows->f_url_poster_landscape;
 
 				$currentIterator++;												  
+				$data[]=array( 
+								"v_franchise_id"=> $rows->v_franchise_id,
+								"v_id"=> $rows->v_id,
+								"v_title"=> $rows->v_title,
+								"v_url_youtube_id"=> $rows->v_url_youtube_id,
+								"v_url_cdn"=> $rows->v_url_youtube_id,
+								"v_prioritize_youtube"=> $rows->v_prioritize_youtube,
+								"v_url_poster"=> $rows->v_url_poster,
+								"v_url_poster_landscape"=> $firstEntryLandscapePosterUrl
+							  );
 			}
 			
 			if($requestedTotalVideoToReturn>=1)
+			else
 			{
 				$dataCat[]=array(
 						"f_id"=> $genreId,
@@ -817,9 +1001,31 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 						"f_url_poster_landscape"=> $firstEntryLandscapePosterUrl,
 						"t_name"=>$genreName,
 						"data_vid"=>$data);
+				$data[]=array(
+								"v_franchise_id"=> $rows->v_franchise_id,
+								"v_id"=> $rows->v_id,
+								"v_title"=> $rows->v_title,
+								"v_url_youtube_id"=> $rows->v_url_youtube_id,
+								"v_url_cdn"=> $rows->v_url_youtube_id,
+								"v_prioritize_youtube"=> $rows->v_prioritize_youtube,
+								"v_url_poster"=> $rows->v_url_poster,
+								"v_url_poster_landscape"=> ''
+							  );
 			}
 		}
 
+			$currentIterator++;												  
+		}
+		
+		if($requestedTotalVideoToReturn>=1)
+		{
+			$dataCat[]=array(
+					"f_id"=> $genreId,
+					//"f_url_poster_landscape"=> $row->g_banner_url,
+					"f_url_poster_landscape"=> $firstEntryLandscapePosterUrl,
+					"t_name"=>$genreName,
+					"data_vid"=>$data);
+		}
 	}
 			
 	$videoList=array("next_id"=>$page_number+$limit_entry_per_page, "data"=>$dataCat);
@@ -827,6 +1033,7 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 	$return["ret"]["dat"] = encrypt(json_encode($videoList));
 				
 }
+
 
 function check_session($conn, $sessionid)
 {
