@@ -189,11 +189,8 @@ function GetClientExtraAPI($jsonaction, $data)
 			$return["evn"] = (string)$jsonaction;
 			//echo $data;
 			$captureddata = json_decode(decrypt($data));
-<<<<<<< Updated upstream
-			if(isset($captureddata->sid) && isset($captureddata->activityId) /*&& ($captureddata->activityId>0)*/ && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->uid) && isset($captureddata->uid))
-=======
+
 			if(isset($captureddata->sid) && isset($captureddata->activityId) && isset($captureddata->videoId) && isset($captureddata->duration) && isset($captureddata->nShares) && isset($captureddata->resolution) && isset($captureddata->uid))
->>>>>>> Stashed changes
 			{
 				if($captureddata->uid==null)
 				{
@@ -201,20 +198,14 @@ function GetClientExtraAPI($jsonaction, $data)
 				}
 				else
 				{
-					$favorite=check_favorite($conn, $captureddata->uid, $captureddata->videoId);
+					$favorite=check_favorite($conn, $captureddata->uid, $captureddata->videoId, $captureddata->sid);
 				}
 				
 				$session=check_session($conn, $captureddata->sid);
-<<<<<<< Updated upstream
 				if($captureddata->videoId!=-1)
 					$activity=insert_activity($conn, $captureddata->sid, $captureddata->videoId );
 				if($captureddata->activityId!="" || $captureddata->activityId!=-1)
 					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->lastSecond, $captureddata->nShares, $captureddata->resolution, $conn->getDateTimeNow());
-=======
-				$activity=insert_activity($conn, $captureddata->sid, $captureddata->videoId );
-				if($captureddata->activityId!="")
-					update_activity($conn, $captureddata->activityId, $captureddata->duration, $captureddata->lastSecond, $captureddata->nShares, $captureddata->resolution, getDateTimeNow());
->>>>>>> Stashed changes
 				
 				$data=get_video_detail($conn,  $captureddata->videoId, $favorite, $activity->data->query_id, $captureddata->uid);
 			}
@@ -327,8 +318,10 @@ function GetClientExtraAPI($jsonaction, $data)
 			$conn = new database();
 			$return["evn"] = (string)$jsonaction;
 			$captureddata = json_decode(decrypt($data));
-			if(isset($captureddata->facebookid) && isset($captureddata->deviceid) && isset($captureddata->referalid) && isset($captureddata->email) && isset($captureddata->fullname) && isset($captureddata->username) && isset($captureddata->gender) && isset($captureddata->birthday) && isset($captureddata->sid) && isset($captureddata->password) && isset($captureddata->photourl))
+			if(isset($captureddata->facebookid) && isset($captureddata->deviceid) && isset($captureddata->email) && isset($captureddata->fullname) && isset($captureddata->username) && isset($captureddata->gender) && isset($captureddata->birthday) && isset($captureddata->sid) && isset($captureddata->password) && isset($captureddata->photourl))
 			{
+				
+				
 				create_user($conn, $captureddata->facebookid, $captureddata->deviceid,$captureddata->referalid, $captureddata->email,$captureddata->fullname, $captureddata->username, $captureddata->gender, $captureddata->birthday,$captureddata->sessionid, $captureddata->password, $captureddata->photourl);
 
 				// TODO : insert this user id, fb id and name to current session id
@@ -402,9 +395,9 @@ function GetClientExtraAPI($jsonaction, $data)
 			$conn = new database();
 			$return["evn"] = (string)$jsonaction;
 			$captureddata = json_decode(decrypt($data));
-			if( isset($captureddata->sid) &&isset($captureddata->uname) && isset($captureddata->password) && isset($captureddata->facebookid) )
+			if( isset($captureddata->sid) &&isset($captureddata->uid) && isset($captureddata->password) && isset($captureddata->facebookid) )
 			{
-				link_facebook($conn, $captureddata->uname, $captureddata->password,$captureddata->facebookid);
+				link_facebook($conn, $captureddata->uid, $captureddata->password,$captureddata->facebookid);
 				$return["sta"] = "SUCCESS";
 			}
 			else
@@ -513,7 +506,9 @@ function GetClientExtraAPI($jsonaction, $data)
 			if(isset($captureddata->sid) && isset($captureddata->lim) && isset($captureddata->fid) && isset($captureddata->cat))
 			{
 				$rsSession=get_session($conn, $captureddata->sid);
+				//echo json_encode($rsSession[0]);
 				$country_name=$rsSession[0]->s_origin_country_name;
+				//echo $country_name;
 				get_video_list($conn, $captureddata->lim, $captureddata->fid, $captureddata->cat,$country_name);
 			}
 			else
@@ -554,11 +549,11 @@ function GetClientExtraAPI($jsonaction, $data)
 			$return["evn"] = (string)$jsonaction;
 			//echo $data;
 			$captureddata = json_decode(decrypt($data));
-			if(isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->type) && isset($captureddata->videoid) && isset($captureddata->usetoken) )
+			if(isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->type) && isset($captureddata->videoId) )
 			{
 				add_tokens($conn, $captureddata->uid, $captureddata->type);
 
-				purchase_video($conn, $captureddata->sid, $captureddata->uid, $captureddata->videoid, $captureddata->usetoken);
+				purchase_video($conn, $captureddata->sid, $captureddata->uid, $captureddata->videoId, 1);
 			}
 			else
 			{
@@ -707,6 +702,98 @@ function GetClientExtraAPI($jsonaction, $data)
 			break;
 		}
 		
+		case "cli_update_profile":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			$captureddata = json_decode(decrypt($data));
+			if( isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->email) && isset($captureddata->fullname) && isset($captureddata->gender)  && isset($captureddata->birthday) && isset($captureddata->username))
+			{
+				//$page=10*$captureddata->pg;
+				update_profile($conn, $captureddata->uid,  $captureddata->email, $captureddata->fullname, $captureddata->gender,  $captureddata->birthday, $captureddata->username, $captureddata->phone);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			
+			$param=setup_action_param($conn, $captureddata->sid, (string)$jsonaction, "", "");
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_upload_image":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			$captureddata = json_decode(decrypt($data));
+			if( isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->imageType) && isset($captureddata->imageBase64))
+			{
+				$data = base64_decode($captureddata->imageBase64);
+				$dir="/home/admin/html/new/images/";
+				$letter = chr(rand(90,122));
+				$filename=$captureddata->uid.'-'.$letter;
+				file_put_contents($dir.$filename.'.'.$captureddata->imageType, $data);
+				$data=array("url"=>"http://new.nonton.com/images/".$filename.'.'.$captureddata->imageType);
+				upload_image($conn, $captureddata->uid, $data);
+
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			
+			$param=setup_action_param($conn, $captureddata->sid, (string)$jsonaction, "", "");
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_change_password" :
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			$captureddata = json_decode(decrypt($data));
+			if( isset($captureddata->sid) && isset($captureddata->uid) && isset($captureddata->oldPassword) && isset($captureddata->newPassword) && isset($captureddata->retypeNewPassword) )
+			{
+				change_password($conn, $captureddata->uid, $captureddata->oldPassword, $captureddata->newPassword, $captureddata->retypeNewPassword);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			
+			$param=setup_action_param($conn, $captureddata->sid, (string)$jsonaction, "", "");
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
+		case "cli_forgot_password" :
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			$captureddata = json_decode(decrypt($data));
+			if( isset($captureddata->sid) && isset($captureddata->email) )
+			{
+				forgot_password($conn, $captureddata->email);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			
+			$param=setup_action_param($conn, $captureddata->sid, (string)$jsonaction, "", "");
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
 		default:
 		{
 			$return["evn"] = "unknown";
@@ -715,6 +802,8 @@ function GetClientExtraAPI($jsonaction, $data)
 			echo json_encode($return);	
 			break;
 		}	
+	
+		
 	}
 }
 
