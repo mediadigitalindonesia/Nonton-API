@@ -794,6 +794,39 @@ function GetClientExtraAPI($jsonaction, $data)
 			break;
 		}
 		
+		case "cli_get_last_watch_time":
+		{
+			$conn = new database();
+			$return["evn"] = (string)$jsonaction;
+			//echo $data;
+			$captureddata = json_decode(decrypt($data));
+
+			if(isset($captureddata->sid)  && isset($captureddata->videoId) && isset($captureddata->uid))
+			{
+				if($captureddata->uid==null)
+				{
+					$favorite=false;
+				}
+				else
+				{
+					$favorite=check_favorite($conn, $captureddata->uid, $captureddata->videoId, $captureddata->sid);
+				}
+				
+				$session=check_session($conn, $captureddata->sid);
+				
+				$data=get_last_watch_time($conn,  $captureddata->videoId, $favorite, $captureddata->uid);
+			}
+			else
+			{
+					$return["sta"] = "FAIL";
+					$return["ret"]["msg"] = "INVALID EVENT FORMAT";
+			}
+			$param=setup_action_param($conn, $captureddata->sid, (string)$jsonaction, "", $captureddata->videoId);
+			insert_action($conn, $param);
+			echo json_encode($return);
+			break;
+		}
+		
 		default:
 		{
 			$return["evn"] = "unknown";
