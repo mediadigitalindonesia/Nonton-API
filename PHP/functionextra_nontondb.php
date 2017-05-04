@@ -186,27 +186,21 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 	}
 	else
 	{
-			$json=$conn->doQuery("select v_id, v_franchise_id,t_name, v_title, v_price, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id",
-								null,'json');
-			$json=$conn->doQuery("select v_id, v_franchise_id,t_name, v_title, v_price, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price, f_type_id from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id", null,'json');
+			$json=$conn->doQuery("select v_id, v_franchise_id,t_name, v_title, v_price, f_genre_id_1, f_genre_id_2,f_genre_id_3,f_genre_id_4,f_genre_id_5,f_company, f_country_id,v_franchise_id, v_synopsis, v_url_youtube_id,v_season, v_episode, v_year_production, v_director, v_casts, v_price, f_type_id from n_video v, n_franchise f, n_type t where t.t_id =f.f_type_id and v_id=".$videoId." and v.v_franchise_id=f.f_id", null,'json');
 			$objVideoDetail=json_decode($json);
-			$json=$conn->doQuery("select v_id, v_title, `v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`, v_franchise_id, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id='".$objVideoDetail->data->query_result[0]->v_franchise_id."' and v_season='".$objVideoDetail->data->query_result[0]->v_season."' and v_season!=-1",
-								null,'json');
+			
 			$video_type = $objVideoDetail->data->query_result[0]->f_type_id;
+			$franchise_country_id = $objVideoDetail->data->query_result[0]->f_country_id;
 
-			$json=$conn->doQuery("select v_id, v_title, `v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`, v_franchise_id, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id='".$objVideoDetail->data->query_result[0]->v_franchise_id."' and v_season='".$objVideoDetail->data->query_result[0]->v_season."' and v_season!=-1", null,'json');
+			$json=$conn->doQuery("select v_id, v_title, `v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`, v_franchise_id, v_url_poster, v_url_poster_landscape,v_url_cdn,v_season, v_episode, v_year_production, v_director, v_casts, v_price from n_video where v_franchise_id='".$objVideoDetail->data->query_result[0]->v_franchise_id."' and v_season='".$objVideoDetail->data->query_result[0]->v_season."' and v_season!=-1 order by v_episode asc", null,'json');
 			$objEpisode=json_decode($json);
-			//$json=$conn->doQuery("select distinct(v_id) v_id, v_franchise_id, v_title, v_url_youtube_id,v_url_cdn, v_prioritize_youtube, v_url_poster, v_url_poster_landscape from n_video v, n_franchise f where v.v_franchise_id=f.f_id and (f_genre_id_1 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.") 
 
 			$json=$conn->doQuery("select distinct(v_id) v_id, v_franchise_id, v_title, v_url_youtube_id,v_url_cdn, v_prioritize_youtube, v_url_poster, v_url_poster_landscape from n_video v, n_franchise f where v.v_franchise_id=f.f_id and f.f_type_id =".$video_type." and ((f_genre_id_1 != -1 and f_genre_id_1 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5."))
 									or (f_genre_id_2 != -1 and f_genre_id_2 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5."))
 									or (f_genre_id_3 != -1 and f_genre_id_3 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5."))
 									or (f_genre_id_4 != -1 and f_genre_id_4 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5."))
 									or (f_genre_id_5 != -1 and f_genre_id_5 in (".$objVideoDetail->data->query_result[0]->f_genre_id_1.",".$objVideoDetail->data->query_result[0]->f_genre_id_2.", ".$objVideoDetail->data->query_result[0]->f_genre_id_3.",".$objVideoDetail->data->query_result[0]->f_genre_id_4.",".$objVideoDetail->data->query_result[0]->f_genre_id_5.")) )
-									and v_id !=".$objVideoDetail->data->query_result[0]->v_id." and v.v_is_active != 0 and v_franchise_id!='".$objVideoDetail->data->query_result[0]->v_franchise_id."' group by v_franchise_id order by f_genre_id_1, f_genre_id_2, f_genre_id_3, f_genre_id_4, f_genre_id_5, f_date_added ASC;",
-								null,'json');
-			//echo $json;			
-				//					and v_id !=".$objVideoDetail->data->query_result[0]->v_id." and v_franchise_id!='".$objVideoDetail->data->query_result[0]->v_franchise_id."' group by v_franchise_id;", null,'json');
+									and v_id !=".$objVideoDetail->data->query_result[0]->v_id." and v.v_is_active != 0 and v_franchise_id!='".$objVideoDetail->data->query_result[0]->v_franchise_id."' group by v_franchise_id order by case when f_country_id = '".$franchise_country_id."' then 1 else 2 end, f_genre_id_1, f_genre_id_2, f_genre_id_3, f_genre_id_4, f_genre_id_5, f_date_added DESC;", null,'json');
 			
 			$objSimiliarVideo=json_decode($json);
 			//echo $objSimiliarVideo;
@@ -221,8 +215,7 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 			else
 				$json=$conn->doQuery("SELECT av_last_second_watched from n_activity ac, n_session s where ac.av_video_id='".$videoId."' and ac.av_session_id='".$sid."' order by  av_id desc limit 2", null, 'json');
 			$objLastSecond=json_decode($json);
-			//echo $json;
-			//check eligible
+			
 			$expiredDate="";
 			if((int)$objVideoDetail->data->query_result[0]->v_price>0)
 			{
@@ -294,7 +287,6 @@ function get_video_detail($conn,  $videoId=null, $favorite, $activityId, $userid
 			return $data;
 	
 }
-
 function insert_activity($conn, $sessionid, $videoId)
 {
 	$date=date('Y-m-d H:i:s');
@@ -586,14 +578,17 @@ function purchase_video($conn, $sid, $userid, $videoid, $usetoken)
 	{
 		$json = $conn->doQuery("SELECT `u_id`, `u_points` FROM `n_user` u WHERE `u_id` = '".$userid."';", 
 										null,'json');
-	$user=json_decode($json);									
-	$data=array(
+		$user=json_decode($json);
+		$json = $conn->doQuery("SELECT ppv_date_ended FROM `n_pay_per_view` u WHERE `ppv_user_id` = '".$userid."' and ppv_video_id ='".$videoid."';", 
+										null,'json');
+		$ppv=json_decode($json);									
+		$data=array(
 				"u_points"=>$user->data->query_result[0]->u_points,
 				"videoid"=>$videoid,
-				"expirationdate"=>date('Y-m-d', strtotime(' +2 day'))
+				"expirationdate"=>$ppv->data->query_result[0]->ppv_date_ended
 				);
-	$return["sta"] = "SUCCESS";
-	$return["ret"]["dat"] = encrypt(json_encode($data));
+		$return["sta"] = "SUCCESS";
+		$return["ret"]["dat"] = encrypt(json_encode($data));
 	}
 	
 }
@@ -735,7 +730,7 @@ function get_video_list($conn, $limit, $page_number, $category, $country_name)
 
 			if((int)$requestedTotalVideoToReturn>0)
 			{
-				$json = $conn->doQuery("SELECT `v_id`,`v_franchise_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,'' `v_url_poster`, `v_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=".$row->f_id." AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') group by v_id ORDER BY v_date_uploaded DESC LIMIT ".$requestedTotalVideoToReturn.";", 
+				$json = $conn->doQuery("SELECT `v_id`,`v_franchise_id`,`v_title`,`v_url_youtube_id`,`v_url_cdn`,`v_prioritize_youtube`,'' `v_url_poster`, `v_url_poster_landscape` FROM `n_video` v, `n_franchise` f, `n_type` t WHERE v_is_featured=1 AND v_is_active =1 AND v_franchise_id=".$row->f_id." AND (UPPER(f_country_access) LIKE '%".strtoupper($country_name)."%' OR UPPER(f_country_access )LIKE '%ALL%') group by v_id ORDER BY v_date_uploaded ASC LIMIT ".$requestedTotalVideoToReturn.";", 
 									null,'json');
 				$objVideo = json_decode($json);
 				$dataVid=$objVideo->data->query_result;
