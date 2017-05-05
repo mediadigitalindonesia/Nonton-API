@@ -113,6 +113,7 @@ final class database{
                 break;
             case "insert":
             case "update":
+			case "call":
             case "delete":
                 try{
                     $query = $this->dbconn->prepare($qstring);
@@ -120,7 +121,7 @@ final class database{
                     if($getid){
                         $data = array("data"=>array("result"=>"ok","query_string"=>(string)$qstring,"query_param"=>$bindparam,"query_id"=>(int)$this->dbconn->lastInsertId()));
                     }else{
-                        $data = array("data"=>array("result"=>"ok","query_string"=>(string)$qstring,"query_param"=>$bindparam));
+                        $data = array("data"=>array("result"=>"ok","query_string"=>(string)$qstring,"query_param"=>$bindparam, "query_id"=>(int)$this->dbconn->lastInsertId()));
                     }
                 }catch(Exception $e){
                     $data=array("data"=>array("result"=>"fail","query_string"=>(string)$qstring,"error_message"=>(string)$e->getMessage()));

@@ -1,15 +1,20 @@
 <?php
 header('Content-type: application/json');
-DEFINE("DBHOST","172.31.0.154");
+//DEFINE("DBHOST","172.31.0.154");
+//DEFINE("DBNAME","nl_ver4");
+//DEFINE("DBUSER","dev");
+//DEFINE("DBPASS","MnbvcxZ321");
+DEFINE("DBHOST","localhost");
 DEFINE("DBNAME","nl_ver4");
-DEFINE("DBUSER","dev");
-DEFINE("DBPASS","MnbvcxZ321");
+DEFINE("DBUSER","root");
+DEFINE("DBPASS","");
 DEFINE("DBAPIKEY","201701091029384756");
 
 date_default_timezone_set("Asia/Jakarta");
 
 include_once("database.php");
 include_once("function_nontondb.php"); 
+include_once("functionextra_nontondb.php"); 
 include_once("helper_nontondb.php");
 include_once("client_nontondb.php");
 include_once("clientextra_nontondb.php");
@@ -23,7 +28,7 @@ if ($jsondata === null && json_last_error() !== JSON_ERROR_NONE)
 	die ("INVALID JSON FORMAT - NO DATA PROVIDED");
 }
 $data = json_decode($jsondata);
-
+$data = $jsondata;
 $jsonapikey = (string)$_POST['api_key'];
 if ($jsonapikey === null && json_last_error() !== JSON_ERROR_NONE) 
 {
